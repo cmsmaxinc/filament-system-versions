@@ -1,6 +1,7 @@
 <?php
 
-// config for Cmsmaxinc/FilamentSystemVersions
 return [
-
+    'database' => [
+        'table_name' => 'composer_versions',
+    ],
 ];

@@ -2,6 +2,8 @@
 
 namespace Cmsmaxinc\FilamentSystemVersions;
 
+use Cmsmaxinc\FilamentSystemVersions\Commands\CheckComposerVersions;
+use Cmsmaxinc\FilamentSystemVersions\Testing\TestsFilamentSystemVersions;
 use Filament\Support\Assets\AlpineComponent;
 use Filament\Support\Assets\Asset;
 use Filament\Support\Assets\Css;
@@ -13,8 +15,6 @@ use Livewire\Features\SupportTesting\Testable;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
-use Cmsmaxinc\FilamentSystemVersions\Commands\FilamentSystemVersionsCommand;
-use Cmsmaxinc\FilamentSystemVersions\Testing\TestsFilamentSystemVersions;
 
 class FilamentSystemVersionsServiceProvider extends PackageServiceProvider
 {
@@ -101,8 +101,8 @@ class FilamentSystemVersionsServiceProvider extends PackageServiceProvider
     {
         return [
             // AlpineComponent::make('filament-system-versions', __DIR__ . '/../resources/dist/components/filament-system-versions.js'),
-            Css::make('filament-system-versions-styles', __DIR__ . '/../resources/dist/filament-system-versions.css'),
-            Js::make('filament-system-versions-scripts', __DIR__ . '/../resources/dist/filament-system-versions.js'),
+            //            Css::make('filament-system-versions-styles', __DIR__ . '/../resources/dist/filament-system-versions.css'),
+            //            Js::make('filament-system-versions-scripts', __DIR__ . '/../resources/dist/filament-system-versions.js'),
         ];
     }
 
@@ -112,7 +112,7 @@ class FilamentSystemVersionsServiceProvider extends PackageServiceProvider
     protected function getCommands(): array
     {
         return [
-            FilamentSystemVersionsCommand::class,
+            CheckComposerVersions::class,
         ];
     }
 
@@ -146,7 +146,7 @@ class FilamentSystemVersionsServiceProvider extends PackageServiceProvider
     protected function getMigrations(): array
     {
         return [
-            'create_filament-system-versions_table',
+            'create_composer_versions_table',
         ];
     }
 }

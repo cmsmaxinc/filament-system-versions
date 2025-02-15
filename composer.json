@@ -14,9 +14,7 @@
     "license": "MIT",
     "authors": [
         {
-            "name": "CMS Max",
-            "email": "-",
-            "role": "Developer"
+            "name": "CMS Max"
         }
     ],
     "require": {
