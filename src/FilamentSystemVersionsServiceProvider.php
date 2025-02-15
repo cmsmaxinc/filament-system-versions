@@ -2,7 +2,7 @@
 
 namespace Cmsmaxinc\FilamentSystemVersions;
 
-use Cmsmaxinc\FilamentSystemVersions\Commands\CheckComposerVersions;
+use Cmsmaxinc\FilamentSystemVersions\Commands\CheckDependencyVersions;
 use Cmsmaxinc\FilamentSystemVersions\Testing\TestsFilamentSystemVersions;
 use Filament\Support\Assets\AlpineComponent;
 use Filament\Support\Assets\Asset;
@@ -112,7 +112,7 @@ class FilamentSystemVersionsServiceProvider extends PackageServiceProvider
     protected function getCommands(): array
     {
         return [
-            CheckComposerVersions::class,
+            CheckDependencyVersions::class,
         ];
     }
 

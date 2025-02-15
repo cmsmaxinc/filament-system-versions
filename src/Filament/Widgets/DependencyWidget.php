@@ -5,7 +5,7 @@ namespace Cmsmaxinc\FilamentSystemVersions\Filament\Widgets;
 use Filament\Widgets\Widget;
 use Illuminate\Support\Facades\DB;
 
-class ComposerWidget extends Widget
+class DependencyWidget extends Widget
 {
     protected static string $view = 'filament-system-versions::filament.widgets.system-versions';
 
@@ -21,8 +21,13 @@ class ComposerWidget extends Widget
 
     protected function getViewData(): array
     {
+        $dependencies = DB::table(config('system-versions.database.table_name', 'composer_versions'))
+            ->where('direct_dependency', config('system-versions.widgets.dependency.show_direct_only', true))
+            ->where('status', '!=', 'up-to-date')
+            ->get();
+
         return [
-            'packages' => DB::table('composer_versions')->get(),
+            'dependencies' => $dependencies,
             'heading' => $this->getCardHeading(),
             'description' => $this->getDescription(),
         ];

@@ -3,7 +3,7 @@
             :heading="$heading"
             :description="$description"
     >
-        @if($packages->isNotEmpty())
+        @if($dependencies->isNotEmpty())
             <table class="w-100 text-sm">
                 <thead>
                 <tr class="text-sm">
@@ -19,21 +19,21 @@
                 </tr>
                 </thead>
                 <tbody>
-                @foreach($packages as $package)
+                @foreach($dependencies as $dependency)
                     <tr class="border-b border-t flex-inline">
                         <td class="p-2">
-                            <a href="https://packagist.org/packages/{{ $package->name }}" target="_blank" class="hover:text-primary-600 hover:underline">
-                                {{ $package->name }}
+                            <a href="https://packagist.org/packages/{{ $dependency->name }}" target="_blank" class="hover:text-primary-600 hover:underline">
+                                {{ $dependency->name }}
                             </a>
                         </td>
                         <td class="p-2">
                             <x-filament::badge color="gray" class="inline-flex whitespace-nowrap flex-none">
-                                {{ $package->current_version }}
+                                {{ $dependency->current_version }}
                             </x-filament::badge>
                         </td>
                         <td class="p-2">
                             <x-filament::badge color="warning" class="inline-flex whitespace-nowrap flex-none">
-                                {{ $package->latest_version }}
+                                {{ $dependency->latest_version }}
                             </x-filament::badge>
                         </td>
                     </tr>

@@ -48,8 +48,12 @@ return [
     'database' => [
         'table_name' => 'composer_versions',
     ],
+    'widgets' => [
+        'dependency' => [
+            'show_direct_only' => true,
+        ],
+    ],
 ];
-
 ```
 
 ## Usage
@@ -66,21 +70,16 @@ This widget will display all outdated composer dependencies with the current ver
 ```
 
 ### Stats
-Stats widget will display the current versions such as PHP, Laravel.
+Stats widget will display the installed version of the dependencies and the latest version available.
 
 ```php
 class StatsOverview extends BaseWidget
 {
     protected function getStats(): array
     {
-        // You add the latest version of the system by calling the `latest()` method on the stat.
         return [
-            PhpVersionStat::make()
-                ->latest(),
-            FilamentVersionStat::make()
-                ->latest(),
-            LaravelVersionStat::make()
-                ->latest(),
+            DependencyStat::make('Laravel', 'laravel/framework'),
+            DependencyStat::make('FilamentPHP', 'filament/filament'),
         ];
     }
 }
