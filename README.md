@@ -1,13 +1,6 @@
-# This is my package filament-system-versions
+# Filament System Versions
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/cmsmaxinc/filament-system-versions.svg?style=flat-square)](https://packagist.org/packages/cmsmaxinc/filament-system-versions)
-[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/cmsmaxinc/filament-system-versions/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/cmsmaxinc/filament-system-versions/actions?query=workflow%3Arun-tests+branch%3Amain)
-[![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/cmsmaxinc/filament-system-versions/fix-php-code-styling.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/cmsmaxinc/filament-system-versions/actions?query=workflow%3A"Fix+PHP+code+styling"+branch%3Amain)
-[![Total Downloads](https://img.shields.io/packagist/dt/cmsmaxinc/filament-system-versions.svg?style=flat-square)](https://packagist.org/packages/cmsmaxinc/filament-system-versions)
-
-
-
-This is where your description should go. Limit it to a paragraph or two. Consider adding a small example.
+This package offers a set of widgets to showcase the current system versions, including Composer dependencies.
 
 ## Installation
 
@@ -24,55 +17,51 @@ php artisan vendor:publish --tag="filament-system-versions-migrations"
 php artisan migrate
 ```
 
+### Custom Theme
+
+You will need to [create a custom theme](https://filamentphp.com/docs/3.x/panels/themes#creating-a-custom-theme) for the styles to be applied correctly.
+
+
+Make sure you add the following to your `tailwind.config.js file.
+
+```bash
+'./vendor/cmsmaxinc/filament-system-versions/resources/**/*.blade.php',
+```
+
+### Translations
+If you want to customize the translations, you can publish the translations file.
+
+```bash
+php artisan vendor:publish --tag="filament-system-versions-translations"
+```
+
 You can publish the config file with:
 
 ```bash
 php artisan vendor:publish --tag="filament-system-versions-config"
 ```
 
-Optionally, you can publish the views using
-
-```bash
-php artisan vendor:publish --tag="filament-system-versions-views"
-```
-
 This is the contents of the published config file:
 
 ```php
 return [
+    'database' => [
+        'table_name' => 'composer_versions',
+    ],
 ];
+
 ```
 
 ## Usage
 
-```php
-$filamentSystemVersions = new Cmsmaxinc\FilamentSystemVersions();
-echo $filamentSystemVersions->echoPhrase('Hello, Cmsmaxinc!');
-```
-
-## Testing
+To run the command to check for outdated composer dependencies, you can run the following command:
 
 ```bash
-composer test
+php artisan composer:outdated
 ```
 
-## Changelog
+But obviously, you don't want to run this command manually every time you want to check for outdated dependencies. So, you can use the command in your scheduler to run this command automatically.
 
-Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.
-
-## Contributing
-
-Please see [CONTRIBUTING](.github/CONTRIBUTING.md) for details.
-
-## Security Vulnerabilities
-
-Please review [our security policy](../../security/policy) on how to report security vulnerabilities.
-
-## Credits
-
-- [CMS Max](https://github.com/cmsmaxinc)
-- [All Contributors](../../contributors)
-
-## License
-
-The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
+```php
+Schedule::call(CheckComposerVersions::class)->daily();
+```
