@@ -65,7 +65,7 @@ This widget will display all outdated composer dependencies with the current ver
 
 ```php
 ->widgets([
-    ComposerWidget::make(),
+    DependencyWidget::make(),
 ])
 ```
 
@@ -78,8 +78,10 @@ class StatsOverview extends BaseWidget
     protected function getStats(): array
     {
         return [
-            DependencyStat::make('Laravel', 'laravel/framework'),
-            DependencyStat::make('FilamentPHP', 'filament/filament'),
+            DependencyStat::make('Laravel')
+                ->dependency('laravel/framework'),
+            DependencyStat::make('FilamentPHP')
+                ->dependency('filament/filament'),
         ];
     }
 }

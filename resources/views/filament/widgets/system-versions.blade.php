@@ -4,9 +4,9 @@
             :description="$description"
     >
         @if($dependencies->isNotEmpty())
-            <table class="w-100 text-sm">
+            <table class="text-sm">
                 <thead>
-                <tr class="text-sm">
+                <tr>
                     <th class="text-left font-semibold p-2">
                         {{ __('filament-system-versions::system-versions.widget.table.name') }}
                     </th>
