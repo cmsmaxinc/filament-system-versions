@@ -54,6 +54,40 @@ return [
 
 ## Usage
 
+### Widgets
+
+#### Oudated Composer Dependencies
+This widget will display all outdated composer dependencies with the current version and the latest version available.
+
+```php
+->widgets([
+    ComposerWidget::make(),
+])
+```
+
+### Stats
+Stats widget will display the current versions such as PHP, Laravel.
+
+```php
+class StatsOverview extends BaseWidget
+{
+    protected function getStats(): array
+    {
+        // You add the latest version of the system by calling the `latest()` method on the stat.
+        return [
+            PhpVersionStat::make()
+                ->latest(),
+            FilamentVersionStat::make()
+                ->latest(),
+            LaravelVersionStat::make()
+                ->latest(),
+        ];
+    }
+}
+```
+
+### Command
+
 To run the command to check for outdated composer dependencies, you can run the following command:
 
 ```bash
