@@ -12,8 +12,8 @@ return [
             ],
         ],
         'system' => [
-            'heading' => 'System',
-            'description' => 'A list of system information',
+            'heading' => 'System details',
+            'description' => 'A summary of the system environment',
         ],
     ],
 ];

@@ -66,13 +66,13 @@ return [
 To run the command to check for outdated composer dependencies, you can run the following command:
 
 ```bash
-php artisan composer:outdated
+php artisan dependency:versions
 ```
 
 But obviously, you don't want to run this command manually every time you want to check for outdated dependencies. So, you can use the command in your scheduler to run this command automatically.
 
 ```php
-Schedule::call(CheckComposerVersions::class)->daily();
+Schedule::call(CheckDependencyVersions::class)->daily();
 ```
 
 ### DependencyWidget

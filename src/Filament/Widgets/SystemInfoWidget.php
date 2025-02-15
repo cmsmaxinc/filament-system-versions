@@ -23,8 +23,8 @@ class SystemInfoWidget extends Widget
     {
         return collect([
             'Environment' => app()->environment(),
-            'PHP Version' => phpversion(),
-            'Laravel Version' => app()->version(),
+            'PHP' => phpversion(),
+            'Laravel' => app()->version(),
         ]);
     }
 
