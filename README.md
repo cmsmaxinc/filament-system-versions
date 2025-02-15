@@ -103,3 +103,5 @@ class StatsOverview extends BaseWidget
     }
 }
 ```
+### Contact Info
+info@cmsmax.com
