@@ -1,5 +1,7 @@
 # Filament System Versions
 
+![thumbnail.png](thumbnail.png)
+
 This package offers a set of widgets to showcase the current system versions, including Composer dependencies.
 
 ## Installation
