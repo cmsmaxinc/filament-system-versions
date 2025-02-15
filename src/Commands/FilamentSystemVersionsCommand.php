@@ -1,12 +1,12 @@
 <?php
 
-namespace VendorName\Skeleton\Commands;
+namespace Cmsmaxinc\FilamentSystemVersions\Commands;
 
 use Illuminate\Console\Command;
 
-class SkeletonCommand extends Command
+class FilamentSystemVersionsCommand extends Command
 {
-    public $signature = 'skeleton';
+    public $signature = 'filament-system-versions';
 
     public $description = 'My command';
 
