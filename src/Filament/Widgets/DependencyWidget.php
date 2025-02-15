@@ -7,16 +7,16 @@ use Illuminate\Support\Facades\DB;
 
 class DependencyWidget extends Widget
 {
-    protected static string $view = 'filament-system-versions::filament.widgets.system-versions';
+    protected static string $view = 'filament-system-versions::filament.widgets.dependency';
 
     public function getCardHeading(): string
     {
-        return __('filament-system-versions::system-versions.widget.heading');
+        return __('filament-system-versions::system-versions.widgets.dependency.heading');
     }
 
     public function getDescription(): string
     {
-        return __('filament-system-versions::system-versions.widget.description');
+        return __('filament-system-versions::system-versions.widgets.dependency.description');
     }
 
     protected function getViewData(): array
