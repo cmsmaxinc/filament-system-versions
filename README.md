@@ -58,9 +58,24 @@ return [
 
 ## Usage
 
-### Widgets
+### Command
 
-#### Oudated Composer Dependencies
+> [!NOTE]  
+> Make sure you run this command atleast once to store the current composer dependencies.
+
+To run the command to check for outdated composer dependencies, you can run the following command:
+
+```bash
+php artisan composer:outdated
+```
+
+But obviously, you don't want to run this command manually every time you want to check for outdated dependencies. So, you can use the command in your scheduler to run this command automatically.
+
+```php
+Schedule::call(CheckComposerVersions::class)->daily();
+```
+
+### DependencyWidget
 This widget will display all outdated composer dependencies with the current version and the latest version available.
 
 ```php
@@ -69,8 +84,8 @@ This widget will display all outdated composer dependencies with the current ver
 ])
 ```
 
-### Stats
-Stats widget will display the installed version of the dependencies and the latest version available.
+### DependencyStat
+Stat widget will display the installed version of the dependencies and the latest version available.
 
 ```php
 class StatsOverview extends BaseWidget
@@ -85,18 +100,4 @@ class StatsOverview extends BaseWidget
         ];
     }
 }
-```
-
-### Command
-
-To run the command to check for outdated composer dependencies, you can run the following command:
-
-```bash
-php artisan composer:outdated
-```
-
-But obviously, you don't want to run this command manually every time you want to check for outdated dependencies. So, you can use the command in your scheduler to run this command automatically.
-
-```php
-Schedule::call(CheckComposerVersions::class)->daily();
 ```
