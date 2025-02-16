@@ -1,6 +1,6 @@
 # Filament System Versions
 
-![Filament System Versions](https://github.com/cmsmaxinc/filament-system-versions/raw/main/thumbnail.png)
+![Filament System Versions](https://github.com/cmsmaxinc/filament-system-versions/raw/main/thumbnail.jpg)
 
 This package offers a set of widgets to showcase the current system versions, including Composer dependencies.
 
