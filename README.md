@@ -103,5 +103,15 @@ class StatsOverview extends BaseWidget
     }
 }
 ```
+
+### Adding the widget to a blade view
+To add the system versions widget to an existing blade view:
+
+```blade
+<x-filament-panels::page>
+    @livewire(\Cmsmaxinc\FilamentSystemVersions\Filament\Widgets\DependencyWidget::class)
+</x-filament-panels::page>
+```
+
 ### Contact Info
 info@cmsmax.com
