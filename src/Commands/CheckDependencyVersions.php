@@ -39,7 +39,7 @@ class CheckDependencyVersions extends Command
                 'status' => $package->{'latest-status'},
                 'direct_dependency' => $package->{'direct-dependency'},
                 'description' => $package->description,
-                'abandoned' => $package->abandoned,
+                'abandoned' => is_bool($package->abandoned) ? $package->abandoned : true,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
