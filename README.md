@@ -113,5 +113,19 @@ To add the system versions widget to an existing blade view:
 </x-filament-panels::page>
 ```
 
+### Embedding the widget in a custom page
+To embed the system versions widget in a custom page, follow these steps:
+
+1. Create a new Livewire component for your custom page if you don't have one already.
+2. In the Livewire component's Blade view, add the following code to include the widget:
+
+```blade
+<div>
+    @livewire(\Cmsmaxinc\FilamentSystemVersions\Filament\Widgets\DependencyWidget::class)
+</div>
+```
+
+3. Ensure that the Livewire component is registered and used in your custom page route.
+
 ### Contact Info
 info@cmsmax.com
