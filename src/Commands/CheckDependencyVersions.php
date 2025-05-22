@@ -25,7 +25,7 @@ class CheckDependencyVersions extends Command
 
         try {
             $results = json_decode($result->output(), flags: JSON_THROW_ON_ERROR);
-        } catch (\JsonException|TypeError $e) {
+        } catch (\JsonException | TypeError $e) {
             // Get a sample of the output (first 1000 chars) to avoid huge log entries
             $output = $result->output();
             $sampleOutput = substr($output, 0, 1000) . (strlen($output) > 1000 ? '...(truncated)' : '');
