@@ -6,6 +6,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Process;
 use RuntimeException;
+use TypeError;
 
 class CheckDependencyVersions extends Command
 {
@@ -22,7 +23,25 @@ class CheckDependencyVersions extends Command
             throw new RuntimeException('Composer outdated failed: ' . $result->errorOutput());
         }
 
-        $results = json_decode($result->output(), flags: JSON_THROW_ON_ERROR);
+        try {
+            $results = json_decode($result->output(), flags: JSON_THROW_ON_ERROR);
+        } catch (\JsonException|TypeError $e) {
+            // Get a sample of the output (first 1000 chars) to avoid huge log entries
+            $output = $result->output();
+            $sampleOutput = substr($output, 0, 1000) . (strlen($output) > 1000 ? '...(truncated)' : '');
+
+            $errorMessage = 'JSON decode failed: ' . $e->getMessage();
+            logger()->error($errorMessage, [
+                'output_sample' => $sampleOutput,
+                'output_length' => strlen($output),
+                'exception' => $e,
+            ]);
+
+            // Report the exception with context for Nightwatch or similar error tracker
+            report(new \Exception($errorMessage . ' See logs for details.', 0, $e));
+
+            return;
+        }
 
         // Truncate the table before inserting new data to make sure that the table is always up-to-date
         DB::table(config('system-versions.database.table_name', 'composer_versions'))->truncate();
