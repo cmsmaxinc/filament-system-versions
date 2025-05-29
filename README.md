@@ -74,7 +74,7 @@ php artisan dependency:versions
 But obviously, you don't want to run this command manually every time you want to check for outdated dependencies. So, you can use the command in your scheduler to run this command automatically.
 
 ```php
-Schedule::call(CheckDependencyVersions::class)->daily();
+Schedule::command(CheckDependencyVersions::class)->daily();
 ```
 
 ### DependencyWidget
