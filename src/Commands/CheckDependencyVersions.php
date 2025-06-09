@@ -23,22 +23,31 @@ class CheckDependencyVersions extends Command
             throw new RuntimeException('Composer outdated failed: ' . $result->errorOutput());
         }
 
+        $output = $this->cleanJsonOutput($result->output());
+
         try {
-            $results = json_decode($result->output(), flags: JSON_THROW_ON_ERROR);
+            $results = json_decode($output, flags: JSON_THROW_ON_ERROR);
         } catch (\JsonException | TypeError $e) {
             // Get a sample of the output (first 1000 chars) to avoid huge log entries
-            $output = $result->output();
             $sampleOutput = substr($output, 0, 1000) . (strlen($output) > 1000 ? '...(truncated)' : '');
 
             $errorMessage = 'JSON decode failed: ' . $e->getMessage();
             logger()->error($errorMessage, [
                 'output_sample' => $sampleOutput,
                 'output_length' => strlen($output),
+                'original_output_length' => strlen($result->output()),
                 'exception' => $e,
             ]);
 
-            // Report the exception with context for Nightwatch or similar error tracker
-            report(new \Exception($errorMessage . ' See logs for details.', 0, $e));
+            // Log the error but don't re-throw - just return gracefully
+            $this->error('Failed to parse composer output. Check logs for details.');
+
+            return;
+        }
+
+        // Validate that we have the expected structure
+        if (! isset($results->installed) || ! is_array($results->installed)) {
+            $this->error('Invalid composer output structure. Expected "installed" array.');
 
             return;
         }
@@ -63,5 +72,29 @@ class CheckDependencyVersions extends Command
                 'updated_at' => now(),
             ]);
         }
+    }
+
+    /**
+     * Clean the composer output to ensure valid JSON
+     */
+    private function cleanJsonOutput(string $output): string
+    {
+        // Remove BOM if present
+        $output = preg_replace('/^\xEF\xBB\xBF/', '', $output);
+
+        // Remove any non-JSON content before the opening brace
+        $jsonStart = strpos($output, '{');
+        if ($jsonStart !== false && $jsonStart > 0) {
+            $output = substr($output, $jsonStart);
+        }
+
+        // Remove any trailing non-JSON content after the last closing brace
+        $jsonEnd = strrpos($output, '}');
+        if ($jsonEnd !== false) {
+            $output = substr($output, 0, $jsonEnd + 1);
+        }
+
+        // Trim whitespace
+        return trim($output);
     }
 }
