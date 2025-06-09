@@ -39,6 +39,9 @@ class CheckDependencyVersions extends Command
                 'exception' => $e,
             ]);
 
+            // Report to error tracking (Nightwatch) and continue gracefully
+            report(new \Exception($errorMessage . ' See logs for details.', 0, $e));
+
             // Log the error but don't re-throw - just return gracefully
             $this->error('Failed to parse composer output. Check logs for details.');
 
