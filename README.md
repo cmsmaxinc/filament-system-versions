@@ -40,7 +40,7 @@ php artisan vendor:publish --tag="filament-system-versions-translations"
 You can publish the config file with:
 
 ```bash
-php artisan vendor:publish --tag="filament-system-versions-config"
+php artisan vendor:publish --tag="system-versions-config"
 ```
 
 This is the contents of the published config file:
