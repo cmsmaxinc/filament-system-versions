@@ -17,13 +17,7 @@ class CheckDependencyVersions extends Command
     public function handle(): void
     {
         // TODO: Grab all packages including up-to-date ones
-        $result = Process::run([
-            config('filament-system-versions.paths.php_path', 'php'),
-            config('filament-system-versions.paths.composer_path', 'composer'),
-            'show',
-            '--latest',
-            '--format=json',
-        ]);
+        $result = Process::run('composer show --latest --format=json');
 
         if ($result->failed()) {
             throw new RuntimeException('Composer outdated failed: ' . $result->errorOutput());
