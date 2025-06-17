@@ -39,7 +39,7 @@ class FilamentSystemVersionsServiceProvider extends PackageServiceProvider
                     ->askToStarRepoOnGitHub('cmsmaxinc/filament-system-versions');
             });
 
-        if (file_exists($package->basePath('/../config/system-versions.php'))) {
+        if (file_exists($package->basePath('/../config/filament-system-versions.php'))) {
             $package->hasConfigFile();
         }
 
