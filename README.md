@@ -70,6 +70,18 @@ But obviously, you don't want to run this command manually every time you want t
 Schedule::command(CheckDependencyVersions::class)->daily();
 ```
 
+
+### Custom Theme
+
+You will need to [create a custom theme](https://filamentphp.com/docs/4.x/styling/overview#creating-a-custom-theme) for the styles to be applied correctly.
+
+
+Make sure you add the following to your `theme.css` file you created for the theme.
+
+```bash
+@source '../../../../vendor/cmsmaxinc/filament-system-versions/resources/**/*.blade.php';
+```
+
 ### DependencyWidget
 This widget will display all outdated composer dependencies with the current version and the latest version available.
 
