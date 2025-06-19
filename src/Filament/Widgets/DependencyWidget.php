@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 
 class DependencyWidget extends Widget
 {
-    protected static string $view = 'filament-system-versions::filament.widgets.dependency';
+    protected string $view = 'filament-system-versions::filament.widgets.dependency';
 
     public function getCardHeading(): string
     {

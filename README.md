@@ -86,7 +86,7 @@ This widget will display all outdated composer dependencies with the current ver
 
 ```php
 ->widgets([
-    DependencyWidget::make(),
+    DependencyWidget::class
 ])
 ```
 
