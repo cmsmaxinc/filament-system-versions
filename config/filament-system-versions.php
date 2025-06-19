@@ -10,7 +10,7 @@ return [
         ],
     ],
     'paths' => [
-        'php_path' => 'php', // Path to the PHP executable
-        'composer_path' => 'composer', // Path to the Composer executable
+        'php_path' => '', // Path to the PHP executable, if default path not working
+        'composer_path' => '', // Path to the Composer executable, if default path not working
     ],
 ];
