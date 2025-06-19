@@ -55,6 +55,10 @@ return [
             'show_direct_only' => true,
         ],
     ],
+    'paths' => [
+        'php_path' => '',
+        'composer_path' => '',
+    ],
 ];
 ```
 

@@ -9,4 +9,8 @@ return [
             'show_direct_only' => true,
         ],
     ],
+    'paths' => [
+        'php_path' => '', // Path to the PHP executable, if default path not working
+        'composer_path' => '', // Path to the Composer executable, if default path not working
+    ],
 ];
