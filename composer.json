@@ -1,6 +1,6 @@
 {
     "name": "cmsmaxinc/filament-system-versions",
-    "description": "This is my package filament-system-versions",
+    "description": "A comprehensive Filament plugin that provides real-time visibility into all package versions within your Filament PHP application. This essential developer tool creates a centralized dashboard where you can instantly view, monitor, and track the current versions of all installed packages in your project and what the latest version is.",
     "keywords": [
         "cmsmaxinc",
         "laravel",
