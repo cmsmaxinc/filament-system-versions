@@ -19,17 +19,6 @@ php artisan vendor:publish --tag="filament-system-versions-migrations"
 php artisan migrate
 ```
 
-### Custom Theme
-
-You will need to [create a custom theme](https://filamentphp.com/docs/3.x/panels/themes#creating-a-custom-theme) for the styles to be applied correctly.
-
-
-Make sure you add the following to your `tailwind.config.js file.
-
-```bash
-'./vendor/cmsmaxinc/filament-system-versions/resources/**/*.blade.php',
-```
-
 ### Translations
 If you want to customize the translations, you can publish the translations file.
 
