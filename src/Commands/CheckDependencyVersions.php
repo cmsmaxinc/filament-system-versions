@@ -17,13 +17,24 @@ class CheckDependencyVersions extends Command
     public function handle(): void
     {
         // TODO: Grab all packages including up-to-date ones
-        $result = Process::run([
-            config('filament-system-versions.paths.php_path', 'php'),
-            config('filament-system-versions.paths.composer_path', 'composer'),
-            'show',
-            '--latest',
-            '--format=json',
-        ]);
+        // Get the configuration values for PHP and Composer
+        $phpPath = config('filament-system-versions.paths.php_path');
+        $composerPath = config('filament-system-versions.paths.composer_path');
+
+        // Check if PHP and Composer paths are set in the config, and if not, use the default approach
+        if ($phpPath && $composerPath) {
+            // If both PHP and Composer paths are set, run the command with the specified paths
+            $result = Process::run([
+                $phpPath,
+                $composerPath,
+                'show',
+                '--latest',
+                '--format=json',
+            ]);
+        } else {
+            // If PHP or Composer path is not set, run the default Composer command
+            $result = Process::run('composer show --latest --format=json');
+        }
 
         if ($result->failed()) {
             throw new RuntimeException('Composer outdated failed: ' . $result->errorOutput());
