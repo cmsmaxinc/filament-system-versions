@@ -20,6 +20,7 @@ php artisan migrate
 ```
 
 ### Translations
+
 If you want to customize the translations, you can publish the translations file.
 
 ```bash
@@ -45,8 +46,8 @@ return [
         ],
     ],
     'paths' => [
-        'php_path' => '',
-        'composer_path' => '',
+        'php_path' => env('PHP_PATH', ''),
+        'composer_path' => env('COMPOSER_PATH', ''),
     ],
 ];
 ```
@@ -70,11 +71,9 @@ But obviously, you don't want to run this command manually every time you want t
 Schedule::command(CheckDependencyVersions::class)->daily();
 ```
 
-
 ### Custom Theme
 
 You will need to [create a custom theme](https://filamentphp.com/docs/4.x/styling/overview#creating-a-custom-theme) for the styles to be applied correctly.
-
 
 Make sure you add the following to your `theme.css` file you created for the theme.
 
@@ -83,6 +82,7 @@ Make sure you add the following to your `theme.css` file you created for the the
 ```
 
 ### DependencyWidget
+
 This widget will display all outdated composer dependencies with the current version and the latest version available.
 
 ```php
@@ -92,6 +92,7 @@ This widget will display all outdated composer dependencies with the current ver
 ```
 
 ### DependencyStat
+
 Stat widget will display the installed version of the dependencies and the latest version available.
 
 ```php
@@ -110,6 +111,7 @@ class StatsOverview extends BaseWidget
 ```
 
 ### Adding the widget to a blade view
+
 To add the system versions widget to an existing blade view:
 
 ```blade
@@ -119,4 +121,5 @@ To add the system versions widget to an existing blade view:
 ```
 
 ### Contact Info
+
 info@cmsmax.com
