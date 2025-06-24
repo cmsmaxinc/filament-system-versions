@@ -7,7 +7,7 @@ use Illuminate\Support\Collection;
 
 class SystemInfoWidget extends Widget
 {
-    protected static string $view = 'filament-system-versions::filament.widgets.system';
+    protected string $view = 'filament-system-versions::filament.widgets.system';
 
     public function getCardHeading(): string
     {
