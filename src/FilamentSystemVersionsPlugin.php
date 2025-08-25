@@ -2,6 +2,7 @@
 
 namespace Cmsmaxinc\FilamentSystemVersions;
 
+use Cmsmaxinc\FilamentSystemVersions\Filament\Pages\SystemVersions;
 use Filament\Contracts\Plugin;
 use Filament\Panel;
 
@@ -14,7 +15,9 @@ class FilamentSystemVersionsPlugin implements Plugin
 
     public function register(Panel $panel): void
     {
-        //
+        $panel->pages([
+            SystemVersions::class,
+        ]);
     }
 
     public function boot(Panel $panel): void
