@@ -12,6 +12,7 @@ use Filament\Support\Facades\FilamentAsset;
 use Filament\Support\Facades\FilamentIcon;
 use Illuminate\Filesystem\Filesystem;
 use Livewire\Features\SupportTesting\Testable;
+use Livewire\Livewire;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
@@ -60,6 +61,12 @@ class FilamentSystemVersionsServiceProvider extends PackageServiceProvider
 
     public function packageBooted(): void
     {
+        // Register Livewire components
+        Livewire::component('cmsmaxinc.filament-system-versions.filament.widgets.system-version-stats', \Cmsmaxinc\FilamentSystemVersions\Filament\Widgets\SystemVersionStats::class);
+        Livewire::component('cmsmaxinc.filament-system-versions.filament.widgets.dependency-widget', \Cmsmaxinc\FilamentSystemVersions\Filament\Widgets\DependencyWidget::class);
+        Livewire::component('cmsmaxinc.filament-system-versions.filament.widgets.system-info-widget', \Cmsmaxinc\FilamentSystemVersions\Filament\Widgets\SystemInfoWidget::class);
+        Livewire::component('cmsmaxinc.filament-system-versions.filament.widgets.dependency-stat', \Cmsmaxinc\FilamentSystemVersions\Filament\Widgets\DependencyStat::class);
+
         // Asset Registration
         FilamentAsset::register(
             $this->getAssets(),
