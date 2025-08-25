@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create(config('system-versions.database.table_name', 'composer_versions'), function (Blueprint $table) {
+        Schema::create(config('filament-system-versions.database.table_name', 'composer_versions'), function (Blueprint $table) {
             $table->id();
             $table->string('name');
             $table->string('current_version');
@@ -23,6 +23,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists(config('system-versions.database.table_name', 'composer_versions'));
+        Schema::dropIfExists(config('filament-system-versions.database.table_name', 'composer_versions'));
     }
 };

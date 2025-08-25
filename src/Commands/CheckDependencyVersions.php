@@ -73,14 +73,14 @@ class CheckDependencyVersions extends Command
         }
 
         // Truncate the table before inserting new data to make sure that the table is always up-to-date
-        DB::table(config('system-versions.database.table_name', 'composer_versions'))->truncate();
+        DB::table(config('filament-system-versions.database.table_name', 'composer_versions'))->truncate();
 
         foreach ($results->installed as $package) {
             if ($package->version != $package->latest) {
                 $this->info("{$package->name} is outdated. Current version: {$package->version}. Latest version: {$package->latest}");
             }
 
-            DB::table(config('system-versions.database.table_name', 'composer_versions'))->insert([
+            DB::table(config('filament-system-versions.database.table_name', 'composer_versions'))->insert([
                 'name' => $package->name,
                 'current_version' => $package->version,
                 'latest_version' => $package->latest,

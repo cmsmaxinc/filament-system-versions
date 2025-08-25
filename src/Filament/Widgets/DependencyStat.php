@@ -40,7 +40,7 @@ class DependencyStat extends Stat
 
     public function getDescription(): string | Htmlable | null
     {
-        $latest = DB::table(config('system-versions.database.table_name', 'composer_versions'))
+        $latest = DB::table(config('filament-system-versions.database.table_name', 'composer_versions'))
             ->where('name', $this->getDependency())
             ->first();
 

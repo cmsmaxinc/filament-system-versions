@@ -21,8 +21,8 @@ class DependencyWidget extends Widget
 
     protected function getViewData(): array
     {
-        $dependencies = DB::table(config('system-versions.database.table_name', 'composer_versions'))
-            ->where('direct_dependency', config('system-versions.widgets.dependency.show_direct_only', true))
+        $dependencies = DB::table(config('filament-system-versions.database.table_name', 'composer_versions'))
+            ->where('direct_dependency', config('filament-system-versions.widgets.dependency.show_direct_only', true))
             ->where('status', '!=', 'up-to-date')
             ->get();
 
