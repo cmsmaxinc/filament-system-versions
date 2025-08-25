@@ -2,7 +2,15 @@
 
 ![Filament System Versions](https://github.com/cmsmaxinc/filament-system-versions/raw/main/thumbnail.jpg)
 
-This package offers a set of widgets to showcase the current system versions, including Composer dependencies.
+This package provides a comprehensive system information page and widgets for Filament panels, showcasing current system versions, PHP information, and Composer dependencies.
+
+## Features
+
+- 📊 **System Versions Page** - A dedicated page displaying system information
+- 🔍 **Dependency Monitoring** - Track outdated Composer dependencies
+- 📈 **System Stats Widget** - Display Laravel and Filament versions
+- ⚙️ **System Info Widget** - Show environment, PHP version, and Laravel version
+- 🎨 **Customizable Navigation** - Configure navigation group, icon, label, and sort order
 
 ## Installation
 
@@ -12,22 +20,34 @@ You can install the package via composer:
 composer require cmsmaxinc/filament-system-versions
 ```
 
-You can publish and run the migrations with:
+## Setup
+
+### 1. Register the Plugin
+
+Add the plugin to your Filament panel configuration:
+
+```php
+use Cmsmaxinc\FilamentSystemVersions\FilamentSystemVersionsPlugin;
+use Filament\Panel;
+
+public function panel(Panel $panel): Panel
+{
+    return $panel
+        // ... other configuration
+        ->plugin(FilamentSystemVersionsPlugin::make());
+}
+```
+
+### 2. Publish and Run Migrations
 
 ```bash
 php artisan vendor:publish --tag="filament-system-versions-migrations"
 php artisan migrate
 ```
 
-### Translations
+### 3. Configuration (Optional)
 
-If you want to customize the translations, you can publish the translations file.
-
-```bash
-php artisan vendor:publish --tag="filament-system-versions-translations"
-```
-
-You can publish the config file with:
+Publish the config file:
 
 ```bash
 php artisan vendor:publish --tag="filament-system-versions-config"
@@ -52,51 +72,111 @@ return [
 ];
 ```
 
+### 4. Translations (Optional)
+
+If you want to customize the translations, you can publish the translations file:
+
+```bash
+php artisan vendor:publish --tag="filament-system-versions-translations"
+```
+
 ## Usage
 
-### Command
+### Basic Usage
+
+Once the plugin is registered, a "System Versions" page will automatically be added to your Filament panel under the "Settings" navigation group. This page displays:
+
+- System version statistics (Laravel & Filament versions)
+- Outdated dependency information
+- System environment details
+
+### Customizing Navigation
+
+You can customize the navigation appearance and behavior using fluent methods when registering the plugin:
+
+```php
+use Cmsmaxinc\FilamentSystemVersions\FilamentSystemVersionsPlugin;
+
+public function panel(Panel $panel): Panel
+{
+    return $panel
+        // ... other configuration
+        ->plugin(
+            FilamentSystemVersionsPlugin::make()
+                ->navigationLabel('System Info')
+                ->navigationGroup('Administration')
+                ->navigationIcon('heroicon-o-cpu-chip') // Or use Enum
+                ->navigationSort(10)
+        );
+}
+```
+
+#### Available Configuration Methods
+
+- `navigationLabel(string $label)` - Set the navigation menu label (default: 'System Versions')
+- `navigationGroup(string $group)` - Set the navigation group (default: 'Settings')
+- `navigationIcon(string $icon)` - Set the navigation icon (default: 'heroicon-o-document-text')
+- `navigationSort(int $sort)` - Set the navigation sort order (default: 99999)
+
+### Dependency Versions Command
 
 > [!NOTE]  
-> Make sure you run this command atleast once to store the current composer dependencies.
+> Make sure you run this command at least once to store the current composer dependencies.
 
-To run the command to check for outdated composer dependencies, you can run the following command:
+To check for outdated composer dependencies:
 
 ```bash
 php artisan dependency:versions
 ```
 
-But obviously, you don't want to run this command manually every time you want to check for outdated dependencies. So, you can use the command in your scheduler to run this command automatically.
+#### Automatic Scheduling
+
+Add the command to your scheduler to run it automatically:
 
 ```php
+use Cmsmaxinc\FilamentSystemVersions\Commands\CheckDependencyVersions;
+
+// In your Console Kernel or service provider
 Schedule::command(CheckDependencyVersions::class)->daily();
 ```
 
-### Custom Theme
+### Using Individual Widgets
 
-You will need to [create a custom theme](https://filamentphp.com/docs/4.x/styling/overview#creating-a-custom-theme) for the styles to be applied correctly.
+You can also use the widgets independently in your own pages or dashboards:
 
-Make sure you add the following to your `theme.css` file you created for the theme.
+#### DependencyWidget
 
-```bash
-@source '../../../../vendor/cmsmaxinc/filament-system-versions/resources/**/*.blade.php';
-```
-
-### DependencyWidget
-
-This widget will display all outdated composer dependencies with the current version and the latest version available.
+Displays all outdated composer dependencies with current and latest versions:
 
 ```php
+use Cmsmaxinc\FilamentSystemVersions\Filament\Widgets\DependencyWidget;
+
 ->widgets([
     DependencyWidget::class
 ])
 ```
 
-### DependencyStat
+#### SystemInfoWidget
 
-Stat widget will display the installed version of the dependencies and the latest version available.
+Shows system environment information:
 
 ```php
-class StatsOverview extends BaseWidget
+use Cmsmaxinc\FilamentSystemVersions\Filament\Widgets\SystemInfoWidget;
+
+->widgets([
+    SystemInfoWidget::class
+])
+```
+
+#### DependencyStat
+
+Create custom stat widgets for specific dependencies:
+
+```php
+use Cmsmaxinc\FilamentSystemVersions\Filament\Widgets\DependencyStat;
+use Filament\Widgets\StatsOverviewWidget as BaseWidget;
+
+class CustomStats extends BaseWidget
 {
     protected function getStats(): array
     {
@@ -105,19 +185,30 @@ class StatsOverview extends BaseWidget
                 ->dependency('laravel/framework'),
             DependencyStat::make('FilamentPHP')
                 ->dependency('filament/filament'),
+            DependencyStat::make('Livewire')
+                ->dependency('livewire/livewire'),
         ];
     }
 }
 ```
 
-### Adding the widget to a blade view
+### Adding Widgets to Blade Views
 
-To add the system versions widget to an existing blade view:
+To add widgets to custom blade views:
 
 ```blade
 <x-filament-panels::page>
     @livewire(\Cmsmaxinc\FilamentSystemVersions\Filament\Widgets\DependencyWidget::class)
+    @livewire(\Cmsmaxinc\FilamentSystemVersions\Filament\Widgets\SystemInfoWidget::class)
 </x-filament-panels::page>
+```
+
+### Custom Theme Support
+
+If you're using a custom theme, add the following to your `theme.css` file to ensure proper styling:
+
+```css
+@source '../../../../vendor/cmsmaxinc/filament-system-versions/resources/**/*.blade.php';
 ```
 
 ### Contact Info
