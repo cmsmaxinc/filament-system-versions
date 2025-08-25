@@ -9,11 +9,11 @@ use UnitEnum;
 
 class SystemVersions extends Page
 {
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-document-text';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-document-text';
 
     protected string $view = 'filament-system-versions::filament.pages.system-versions';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Settings';
+    protected static string | UnitEnum | null $navigationGroup = 'Settings';
 
     protected static ?string $navigationLabel = 'System Versions';
 
