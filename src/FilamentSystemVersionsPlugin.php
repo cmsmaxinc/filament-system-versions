@@ -17,6 +17,8 @@ class FilamentSystemVersionsPlugin implements Plugin
 
     protected ?int $navigationSort = null;
 
+    protected array $statsPackages = [];
+
     public function getId(): string
     {
         return 'filament-system-versions';
@@ -110,5 +112,25 @@ class FilamentSystemVersionsPlugin implements Plugin
         $plugin = filament(app(static::class)->getId());
 
         return $plugin;
+    }
+
+    public function statsPackages(array $packages): static
+    {
+        $this->statsPackages = $packages;
+
+        return $this;
+    }
+
+    public function getStatsPackages(): array
+    {
+        // Default packages if none specified
+        if (empty($this->statsPackages)) {
+            return [
+                ['label' => 'Laravel', 'package' => 'laravel/framework'],
+                ['label' => 'FilamentPHP', 'package' => 'filament/filament'],
+            ];
+        }
+
+        return $this->statsPackages;
     }
 }
