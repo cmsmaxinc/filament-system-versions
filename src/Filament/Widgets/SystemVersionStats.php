@@ -14,7 +14,7 @@ class SystemVersionStats extends BaseWidget
     protected function getColumns(): int
     {
         $count = count($this->getConfiguredPackages());
-        
+
         // Return appropriate column count based on number of packages
         return match (true) {
             $count <= 2 => 2,

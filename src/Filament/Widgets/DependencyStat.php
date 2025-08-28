@@ -19,23 +19,23 @@ class DependencyStat extends Stat
     public function dependency(string $dependency): static
     {
         $this->dependency = $dependency;
-        
+
         // Set the URL for the stat card and open in new tab
         $this->url($this->getGithubUrl())
             ->openUrlInNewTab();
 
         return $this;
     }
-    
+
     private function getGithubUrl(): ?string
     {
         $package = $this->dependency;
-        
+
         // Special case for PHP - link to official PHP website
         if ($package === 'php') {
             return 'https://www.php.net';
         }
-        
+
         // For composer packages, link to Packagist
         return "https://packagist.org/packages/{$package}";
     }
@@ -51,7 +51,7 @@ class DependencyStat extends Stat
         if ($this->getDependency() === 'php') {
             return phpversion();
         }
-        
+
         // Handle composer packages
         try {
             return InstalledVersions::getPrettyVersion($this->getDependency());
@@ -71,7 +71,7 @@ class DependencyStat extends Stat
         if ($this->getDependency() === 'php') {
             return null;
         }
-        
+
         $latest = DB::table(config('filament-system-versions.database.table_name', 'composer_versions'))
             ->where('name', $this->getDependency())
             ->first();
