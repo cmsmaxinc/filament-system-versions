@@ -68,7 +68,7 @@ class FilamentSystemVersionsPlugin implements Plugin
 
     public function isAuthorized(): bool
     {
-        return $this->evaluate($this->authorizeUsing) === true;
+        return $this->evaluate($this->authorizeUsing);
     }
 
     public function navigationGroup(string | UnitEnum | null $group): static
