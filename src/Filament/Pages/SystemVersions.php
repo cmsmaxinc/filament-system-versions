@@ -20,7 +20,6 @@ class SystemVersions extends Page
 
     protected static ?int $navigationSort = 99999;
 
-
     public static function canAccess(): bool
     {
         return FilamentSystemVersionsPlugin::get()->isAuthorized();
