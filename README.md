@@ -11,6 +11,7 @@ This package provides a comprehensive system information page and widgets for Fi
 - 📈 **System Stats Widget** - Display Laravel and Filament versions
 - ⚙️ **System Info Widget** - Show environment, PHP version, and Laravel version
 - 🎨 **Customizable Navigation** - Configure navigation group, icon, label, and sort order
+- 🔒 **Authorization Control** – Define who can access the page using a boolean or a closure
 
 ## Installation
 
@@ -111,12 +112,36 @@ public function panel(Panel $panel): Panel
 }
 ```
 
+### Controlling Access to the Page
+
+Access to the System Info page can be restricted through the `authorize` method provided by the plugin.
+
+This method accepts either a simple boolean or a closure, and must resolve to true when the current user should be allowed to view the page.
+
+```php
+use Cmsmaxinc\FilamentSystemVersions\FilamentSystemVersionsPlugin;
+
+public function panel(Panel $panel): Panel
+{
+    return $panel
+        // ... other configuration
+        ->plugin(
+            FilamentSystemVersionsPlugin::make()
+                // Example with Spatie Roles / Filament Shield
+                ->authorize(fn () => auth()->user()?->hasRole('super_admin'))
+                // Example with is_admin column on users table
+                ->authorize(fn () => auth()->user()?->is_admin)
+        );
+}
+```
+
 #### Available Configuration Methods
 
 - `navigationLabel(string $label)` - Set the navigation menu label (default: 'System Versions')
 - `navigationGroup(string $group)` - Set the navigation group (default: 'Settings')
 - `navigationIcon(string $icon)` - Set the navigation icon (default: 'heroicon-o-document-text')
 - `navigationSort(int $sort)` - Set the navigation sort order (default: 99999)
+- `authorize(bool | Closure)` - Define whether the current user is allowed to access the page. Accepts either a `bool` (`true` or `false`) or a `Closure` that returns a boolean (default: true).
 
 ### Dependency Versions Command
 

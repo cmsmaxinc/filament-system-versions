@@ -2,13 +2,19 @@
 
 namespace Cmsmaxinc\FilamentSystemVersions;
 
+use Closure;
 use Cmsmaxinc\FilamentSystemVersions\Filament\Pages\SystemVersions;
 use Filament\Contracts\Plugin;
 use Filament\Panel;
+use Filament\Support\Concerns\EvaluatesClosures;
 use UnitEnum;
 
 class FilamentSystemVersionsPlugin implements Plugin
 {
+    use EvaluatesClosures;
+
+    protected bool | Closure $authorizeUsing = true;
+
     protected ?string $navigationGroup = null;
 
     protected string | \BackedEnum | null $navigationIcon = null;
@@ -51,6 +57,18 @@ class FilamentSystemVersionsPlugin implements Plugin
         $navigationSort = $reflection->getProperty('navigationSort');
         $navigationSort->setAccessible(true);
         $navigationSort->setValue(null, $this->getNavigationSort());
+    }
+
+    public function authorize(bool | Closure $callback = true): static
+    {
+        $this->authorizeUsing = $callback;
+
+        return $this;
+    }
+
+    public function isAuthorized(): bool
+    {
+        return $this->evaluate($this->authorizeUsing);
     }
 
     public function navigationGroup(string | UnitEnum | null $group): static
