@@ -6,6 +6,7 @@ use Composer\InstalledVersions;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class DependencyStat extends Stat
 {
@@ -13,7 +14,7 @@ class DependencyStat extends Stat
 
     public static function make(Htmlable | string $label, $value = null): static
     {
-        return parent::make($label, null);
+        return parent::make($label, $value);
     }
 
     public function dependency(string $dependency): static
@@ -47,6 +48,11 @@ class DependencyStat extends Stat
 
     public function getValue(): ?string
     {
+        // An explicit value passed to make() wins over the resolved version
+        if (parent::getValue() !== null) {
+            return parent::getValue();
+        }
+
         // Handle special cases
         if ($this->getDependency() === 'php') {
             return phpversion();
@@ -55,8 +61,8 @@ class DependencyStat extends Stat
         // Handle composer packages
         try {
             return InstalledVersions::getPrettyVersion($this->getDependency());
-        } catch (\Exception $e) {
-            return 'Not installed';
+        } catch (\Throwable) {
+            return __('filament-system-versions::system-versions.widgets.stats.not_installed');
         }
     }
 
@@ -72,10 +78,15 @@ class DependencyStat extends Stat
             return null;
         }
 
-        $latest = DB::table(config('filament-system-versions.database.table_name', 'composer_versions'))
-            ->where('name', $this->getDependency())
-            ->first();
+        $table = config('filament-system-versions.database.table_name', 'composer_versions');
 
-        return $latest?->latest_version;
+        if (! Schema::hasTable($table)) {
+            return null;
+        }
+
+        return DB::table($table)
+            ->where('name', $this->getDependency())
+            ->first()
+            ?->latest_version;
     }
 }

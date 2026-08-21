@@ -22,16 +22,25 @@ class SystemInfoWidget extends Widget
     protected function getDetails(): Collection
     {
         return collect([
-            'Environment' => app()->environment(),
+            __('filament-system-versions::system-versions.widgets.system.details.environment') => app()->environment(),
             'PHP' => phpversion(),
             'Laravel' => app()->version(),
+            __('filament-system-versions::system-versions.widgets.system.details.timezone') => config('app.timezone'),
         ]);
     }
 
     protected function getViewData(): array
     {
+        $debug = (bool) config('app.debug');
+
         return [
             'details' => $this->getDetails(),
+            'debug' => $debug,
+            'debugColor' => match (true) {
+                $debug && app()->isProduction() => 'danger',
+                $debug => 'warning',
+                default => 'success',
+            },
             'heading' => $this->getCardHeading(),
             'description' => $this->getDescription(),
         ];

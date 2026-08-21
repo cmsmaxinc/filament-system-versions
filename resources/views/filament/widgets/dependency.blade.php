@@ -3,37 +3,59 @@
             :heading="$heading"
             :description="$description"
     >
-        @if($dependencies->isNotEmpty())
-            <div class="flex justify-between py-2">
-                <div class="text-sm text-gray-600 dark:text-white font-bold">
-                  {{ __('filament-system-versions::system-versions.widgets.dependency.table.name') }}
-                </div>
-                <div class="text-sm text-gray-500 dark:text-white font-bold">
-                    {{ __('filament-system-versions::system-versions.widgets.dependency.table.version') }}
-                </div>
-            </div>
-          @foreach($dependencies as $dependency)
-                <div class="flex justify-between py-2">
-                    <div class="text-sm text-gray-500 dark:text-gray-400">
-                        <a href="https://packagist.org/packages/{{ $dependency->name }}" target="_blank" class="hover:text-primary-600 hover:underline">
-                            {{ $dependency->name }}
-                        </a>
-                    </div>
-                    <div class="text-sm text-gray-500 dark:text-gray-400 flex gap-2">
-                        <x-filament::badge color="warning">{{ $dependency->current_version }} > {{ $dependency->latest_version }}</x-filament::badge>
-                    </div>
-                </div>
-          @endforeach
-        @else
-            <div class="fi-ta-empty-state-content mx-auto grid max-w-lg justify-items-center text-center">
-                <div class="fi-ta-empty-state-icon-ctn mb-4 rounded-full bg-gray-100 p-3 dark:bg-gray-500/20">
-                    <x-filament::icon
-                            icon="heroicon-o-check-circle"
-                            class="fi-ta-empty-state-icon h-6 w-6 text-primary-600 dark:text-primary-600"
-                    />
+        @if($missingTable || ! $hasData)
+            <div class="fsv-empty">
+                <div class="fsv-empty-icon">
+                    <x-filament::icon icon="heroicon-o-exclamation-triangle" />
                 </div>
 
-                <p class="fi-ta-empty-state-description text-sm text-gray-500 dark:text-gray-400 mt-1">
+                <p class="fsv-empty-text">
+                    {{ $missingTable
+                        ? __('filament-system-versions::system-versions.widgets.dependency.missing_table')
+                        : __('filament-system-versions::system-versions.widgets.dependency.no_data') }}
+                </p>
+            </div>
+        @elseif($dependencies->isNotEmpty())
+            <div class="fsv-list">
+                <div class="fsv-row">
+                    <span class="fsv-col-label">
+                        {{ __('filament-system-versions::system-versions.widgets.dependency.table.name') }}
+                    </span>
+                    <span class="fsv-col-label">
+                        {{ __('filament-system-versions::system-versions.widgets.dependency.table.version') }}
+                    </span>
+                </div>
+                @foreach($dependencies as $dependency)
+                    <div class="fsv-row">
+                        <span class="fsv-label">
+                            <a href="https://packagist.org/packages/{{ $dependency->name }}" target="_blank" class="fsv-link">
+                                {{ $dependency->name }}
+                            </a>
+                            @if($dependency->abandoned)
+                                <x-filament::badge color="danger">
+                                    {{ __('filament-system-versions::system-versions.widgets.dependency.abandoned') }}
+                                </x-filament::badge>
+                            @endif
+                        </span>
+                        <span class="fsv-value">
+                            @if($dependency->status !== 'up-to-date')
+                                <x-filament::badge :color="$dependency->badge_color">
+                                    {{ $dependency->current_version }} &rarr; {{ $dependency->latest_version }}
+                                </x-filament::badge>
+                            @else
+                                {{ $dependency->current_version }}
+                            @endif
+                        </span>
+                    </div>
+                @endforeach
+            </div>
+        @else
+            <div class="fsv-empty">
+                <div class="fsv-empty-icon">
+                    <x-filament::icon icon="heroicon-o-check-circle" />
+                </div>
+
+                <p class="fsv-empty-text">
                     {{ __('filament-system-versions::system-versions.widgets.dependency.empty') }}
                 </p>
             </div>
