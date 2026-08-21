@@ -15,13 +15,13 @@ class FilamentSystemVersionsPlugin implements Plugin
 
     protected bool | Closure $authorizeUsing = true;
 
-    protected ?string $navigationGroup = null;
+    protected string | UnitEnum | Closure | null $navigationGroup = null;
 
-    protected string | \BackedEnum | null $navigationIcon = null;
+    protected string | \BackedEnum | Closure | null $navigationIcon = null;
 
-    protected ?string $navigationLabel = null;
+    protected string | Closure | null $navigationLabel = null;
 
-    protected ?int $navigationSort = null;
+    protected int | Closure | null $navigationSort = null;
 
     protected array $statsPackages = [];
 
@@ -39,24 +39,7 @@ class FilamentSystemVersionsPlugin implements Plugin
 
     public function boot(Panel $panel): void
     {
-        // Use reflection to set protected static properties
-        $reflection = new \ReflectionClass(SystemVersions::class);
-
-        $navigationGroup = $reflection->getProperty('navigationGroup');
-        $navigationGroup->setAccessible(true);
-        $navigationGroup->setValue(null, $this->getNavigationGroup());
-
-        $navigationIcon = $reflection->getProperty('navigationIcon');
-        $navigationIcon->setAccessible(true);
-        $navigationIcon->setValue(null, $this->getNavigationIcon());
-
-        $navigationLabel = $reflection->getProperty('navigationLabel');
-        $navigationLabel->setAccessible(true);
-        $navigationLabel->setValue(null, $this->getNavigationLabel());
-
-        $navigationSort = $reflection->getProperty('navigationSort');
-        $navigationSort->setAccessible(true);
-        $navigationSort->setValue(null, $this->getNavigationSort());
+        //
     }
 
     public function authorize(bool | Closure $callback = true): static
@@ -71,7 +54,7 @@ class FilamentSystemVersionsPlugin implements Plugin
         return $this->evaluate($this->authorizeUsing);
     }
 
-    public function navigationGroup(string | UnitEnum | null $group): static
+    public function navigationGroup(string | UnitEnum | Closure | null $group): static
     {
         $this->navigationGroup = $group;
 
@@ -80,10 +63,10 @@ class FilamentSystemVersionsPlugin implements Plugin
 
     public function getNavigationGroup(): string | UnitEnum | null
     {
-        return $this->navigationGroup ?? 'Settings';
+        return $this->evaluate($this->navigationGroup) ?? __('filament-system-versions::system-versions.navigation.group');
     }
 
-    public function navigationIcon(string | \BackedEnum | null $icon): static
+    public function navigationIcon(string | \BackedEnum | Closure | null $icon): static
     {
         $this->navigationIcon = $icon;
 
@@ -92,22 +75,22 @@ class FilamentSystemVersionsPlugin implements Plugin
 
     public function getNavigationIcon(): string | \BackedEnum | null
     {
-        return $this->navigationIcon ?? 'heroicon-o-document-text';
+        return $this->evaluate($this->navigationIcon) ?? 'heroicon-o-document-text';
     }
 
-    public function navigationLabel(?string $label): static
+    public function navigationLabel(string | Closure | null $label): static
     {
         $this->navigationLabel = $label;
 
         return $this;
     }
 
-    public function getNavigationLabel(): ?string
+    public function getNavigationLabel(): string
     {
-        return $this->navigationLabel ?? 'System Versions';
+        return $this->evaluate($this->navigationLabel) ?? __('filament-system-versions::system-versions.navigation.label');
     }
 
-    public function navigationSort(?int $sort): static
+    public function navigationSort(int | Closure | null $sort): static
     {
         $this->navigationSort = $sort;
 
@@ -116,7 +99,7 @@ class FilamentSystemVersionsPlugin implements Plugin
 
     public function getNavigationSort(): ?int
     {
-        return $this->navigationSort ?? 99999;
+        return $this->evaluate($this->navigationSort) ?? 99999;
     }
 
     public static function make(): static

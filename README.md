@@ -7,9 +7,9 @@ This package provides a comprehensive system information page and widgets for Fi
 ## Features
 
 - 📊 **System Versions Page** - A dedicated page displaying system information
-- 🔍 **Dependency Monitoring** - Track outdated Composer dependencies
+- 🔍 **Dependency Monitoring** - Track outdated and abandoned Composer dependencies, color-coded by update severity
 - 📈 **System Stats Widget** - Display Laravel and Filament versions
-- ⚙️ **System Info Widget** - Show environment, PHP version, and Laravel version
+- ⚙️ **System Info Widget** - Show environment, debug mode, timezone, PHP version, and Laravel version
 - 🎨 **Customizable Navigation** - Configure navigation group, icon, label, and sort order
 - 🔒 **Authorization Control** – Define who can access the page using a boolean or a closure
 
@@ -112,6 +112,16 @@ public function panel(Panel $panel): Panel
 }
 ```
 
+Every navigation method also accepts a closure, which is evaluated lazily on each request. Use this on multilanguage sites so translations resolve in the visitor's locale:
+
+```php
+->plugin(
+    FilamentSystemVersionsPlugin::make()
+        ->navigationLabel(fn () => __('System Info'))
+        ->navigationGroup(fn () => __('Administration'))
+)
+```
+
 ### Controlling Access to the Page
 
 Access to the System Info page can be restricted through the `authorize` method provided by the plugin.
@@ -135,12 +145,15 @@ public function panel(Panel $panel): Panel
 }
 ```
 
+> [!TIP]
+> Exact framework and package versions are useful reconnaissance for an attacker. Consider restricting this page to administrators rather than leaving it visible to every panel user (the default is `true`, i.e. visible to everyone with panel access).
+
 #### Available Configuration Methods
 
-- `navigationLabel(string $label)` - Set the navigation menu label (default: 'System Versions')
-- `navigationGroup(string $group)` - Set the navigation group (default: 'Settings')
-- `navigationIcon(string $icon)` - Set the navigation icon (default: 'heroicon-o-document-text')
-- `navigationSort(int $sort)` - Set the navigation sort order (default: 99999)
+- `navigationLabel(string | Closure | null $label)` - Set the navigation menu label (default: 'System Versions')
+- `navigationGroup(string | UnitEnum | Closure | null $group)` - Set the navigation group (default: 'Settings')
+- `navigationIcon(string | BackedEnum | Closure | null $icon)` - Set the navigation icon (default: 'heroicon-o-document-text')
+- `navigationSort(int | Closure | null $sort)` - Set the navigation sort order (default: 99999)
 - `authorize(bool | Closure)` - Define whether the current user is allowed to access the page. Accepts either a `bool` (`true` or `false`) or a `Closure` that returns a boolean (default: true).
 
 ### Dependency Versions Command

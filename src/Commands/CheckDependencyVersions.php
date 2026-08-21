@@ -72,26 +72,41 @@ class CheckDependencyVersions extends Command
             return;
         }
 
-        // Truncate the table before inserting new data to make sure that the table is always up-to-date
-        DB::table(config('filament-system-versions.database.table_name', 'composer_versions'))->truncate();
+        $table = config('filament-system-versions.database.table_name', 'composer_versions');
+        $now = now();
+        $rows = [];
 
         foreach ($results->installed as $package) {
-            if ($package->version != $package->latest) {
-                $this->info("{$package->name} is outdated. Current version: {$package->version}. Latest version: {$package->latest}");
+            $latest = $package->latest ?? $package->version;
+
+            if ($package->version != $latest) {
+                $this->info("{$package->name} is outdated. Current version: {$package->version}. Latest version: {$latest}");
             }
 
-            DB::table(config('filament-system-versions.database.table_name', 'composer_versions'))->insert([
+            // "abandoned" is false, or the name of a suggested replacement package
+            $abandoned = $package->abandoned ?? false;
+
+            $rows[] = [
                 'name' => $package->name,
                 'current_version' => $package->version,
-                'latest_version' => $package->latest,
-                'status' => $package->{'latest-status'},
-                'direct_dependency' => $package->{'direct-dependency'},
-                'description' => $package->description,
-                'abandoned' => is_bool($package->abandoned) ? $package->abandoned : true,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+                'latest_version' => $latest,
+                'status' => $package->{'latest-status'} ?? 'up-to-date',
+                'direct_dependency' => $package->{'direct-dependency'} ?? false,
+                'description' => $package->description ?? null,
+                'abandoned' => is_bool($abandoned) ? $abandoned : true,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
         }
+
+        // Replace the snapshot atomically so the widgets never observe a half-written table
+        DB::transaction(function () use ($table, $rows) {
+            DB::table($table)->delete();
+
+            foreach (array_chunk($rows, 100) as $chunk) {
+                DB::table($table)->insert($chunk);
+            }
+        });
     }
 
     /**

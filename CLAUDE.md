@@ -15,12 +15,14 @@ composer format        # Laravel Pint
 
 There is no Laravel app here — it's a package. To see changes rendered, point a consuming app's `composer.json` at this repo as a `path` repository and register the plugin in a panel.
 
+CI (`.github/workflows/run-tests.yml`) runs the suite across a PHP × Filament (`^4.0` / `^5.0`) matrix; `fix-php-code-style-issues.yml` auto-commits Pint fixes. When touching anything that overrides a Filament method, verify against both majors locally (`composer require "filament/filament:^4.0" --no-update && composer update`, run Pest, then restore the constraint) — the SmokeTest's `class_exists` checks are what catch signature drift. Note for this Windows machine: don't pass `^`-constraints through PowerShell to composer (`.bat` argument handling strips the caret); edit composer.json directly instead.
+
 ## Architecture
 
 - `src/FilamentSystemVersionsServiceProvider.php` — package wiring: views (`filament-system-versions::` namespace), translations, config, migration stub, Livewire component registration, and CSS asset registration via `FilamentAsset`.
-- `src/FilamentSystemVersionsPlugin.php` — the Filament plugin class consumers register on a panel. Fluent config (`navigationLabel()`, `navigationGroup()`, `authorize()`, `statsPackages()`, …). Note: `boot()` pushes navigation settings onto the `SystemVersions` page via reflection, because the page's navigation properties are static.
-- `src/Filament/Pages/SystemVersions.php` — the panel page; access gated by `FilamentSystemVersionsPlugin::get()->isAuthorized()`.
-- `src/Filament/Widgets/` — `SystemInfoWidget` (environment/PHP/Laravel), `DependencyWidget` (outdated packages), `SystemVersionStats` + `DependencyStat` (stats overview). `SystemVersionStats` is `$isDiscovered = false` — only rendered where explicitly used.
+- `src/FilamentSystemVersionsPlugin.php` — the Filament plugin class consumers register on a panel. Fluent config (`navigationLabel()`, `navigationGroup()`, `authorize()`, `statsPackages()`, …). All navigation setters accept closures, evaluated lazily per request so `fn () => __('…')` translates in the visitor's locale (issue #15) — keep it that way; don't resolve values at registration/boot time.
+- `src/Filament/Pages/SystemVersions.php` — the panel page. Its static navigation getters delegate to `FilamentSystemVersionsPlugin::get()`; access gated by `isAuthorized()`. Override signatures must match the installed Filament major — the SmokeTest loads these classes to catch drift.
+- `src/Filament/Widgets/` — `SystemInfoWidget` (environment/debug/timezone/PHP/Laravel), `DependencyWidget` (outdated + abandoned packages, badge color by composer's `latest-status`), `SystemVersionStats` + `DependencyStat` (stats overview). `SystemVersionStats` is `$isDiscovered = false` — only rendered where explicitly used. The dependency widgets guard against the `composer_versions` table not existing yet (fresh install before migrations) — preserve those guards when editing queries.
 - `src/Commands/CheckDependencyVersions.php` — `php artisan dependency:versions` runs `composer show --latest --format=json` and stores results in the `composer_versions` table (name configurable via config). The dependency widgets read from that table, so the command must run at least once before they show data.
 - `resources/views/filament/` — Blade views for the page and widgets.
 - `resources/lang/*/system-versions.php` — translations; keys referenced as `filament-system-versions::system-versions.*`.
@@ -37,7 +39,7 @@ Instead, the package ships a hand-written plain stylesheet at `resources/css/fil
 
 Consumers get the stylesheet through `php artisan filament:assets` (normally run automatically by `filament:upgrade` on composer dump-autoload).
 
-The `package.json` Tailwind build scripts (`build:styles` → `resources/dist/`) are legacy scaffolding from the plugin skeleton and are not part of the current styling pipeline; `resources/dist/` is empty on purpose.
+There is deliberately no Node/Tailwind build pipeline in this package (the skeleton's `package.json`/`tailwind.config.js` scaffolding was removed) — don't reintroduce one for styling.
 
 ## Conventions
 

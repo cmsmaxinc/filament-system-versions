@@ -33,6 +33,10 @@
 }
 
 .fsv-label {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
     min-width: 0;
     font-size: 0.875rem;
     line-height: 1.25rem;

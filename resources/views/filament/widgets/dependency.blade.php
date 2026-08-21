@@ -3,7 +3,19 @@
             :heading="$heading"
             :description="$description"
     >
-        @if($dependencies->isNotEmpty())
+        @if($missingTable || ! $hasData)
+            <div class="fsv-empty">
+                <div class="fsv-empty-icon">
+                    <x-filament::icon icon="heroicon-o-exclamation-triangle" />
+                </div>
+
+                <p class="fsv-empty-text">
+                    {{ $missingTable
+                        ? __('filament-system-versions::system-versions.widgets.dependency.missing_table')
+                        : __('filament-system-versions::system-versions.widgets.dependency.no_data') }}
+                </p>
+            </div>
+        @elseif($dependencies->isNotEmpty())
             <div class="fsv-list">
                 <div class="fsv-row">
                     <span class="fsv-col-label">
@@ -19,9 +31,20 @@
                             <a href="https://packagist.org/packages/{{ $dependency->name }}" target="_blank" class="fsv-link">
                                 {{ $dependency->name }}
                             </a>
+                            @if($dependency->abandoned)
+                                <x-filament::badge color="danger">
+                                    {{ __('filament-system-versions::system-versions.widgets.dependency.abandoned') }}
+                                </x-filament::badge>
+                            @endif
                         </span>
                         <span class="fsv-value">
-                            <x-filament::badge color="warning">{{ $dependency->current_version }} &rarr; {{ $dependency->latest_version }}</x-filament::badge>
+                            @if($dependency->status !== 'up-to-date')
+                                <x-filament::badge :color="$dependency->badge_color">
+                                    {{ $dependency->current_version }} &rarr; {{ $dependency->latest_version }}
+                                </x-filament::badge>
+                            @else
+                                {{ $dependency->current_version }}
+                            @endif
                         </span>
                     </div>
                 @endforeach
