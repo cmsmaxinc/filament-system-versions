@@ -4,36 +4,35 @@
             :description="$description"
     >
         @if($dependencies->isNotEmpty())
-            <div class="flex justify-between py-2">
-                <div class="text-sm text-gray-600 dark:text-white font-bold">
-                  {{ __('filament-system-versions::system-versions.widgets.dependency.table.name') }}
+            <div class="fsv-list">
+                <div class="fsv-row">
+                    <span class="fsv-col-label">
+                        {{ __('filament-system-versions::system-versions.widgets.dependency.table.name') }}
+                    </span>
+                    <span class="fsv-col-label">
+                        {{ __('filament-system-versions::system-versions.widgets.dependency.table.version') }}
+                    </span>
                 </div>
-                <div class="text-sm text-gray-500 dark:text-white font-bold">
-                    {{ __('filament-system-versions::system-versions.widgets.dependency.table.version') }}
-                </div>
+                @foreach($dependencies as $dependency)
+                    <div class="fsv-row">
+                        <span class="fsv-label">
+                            <a href="https://packagist.org/packages/{{ $dependency->name }}" target="_blank" class="fsv-link">
+                                {{ $dependency->name }}
+                            </a>
+                        </span>
+                        <span class="fsv-value">
+                            <x-filament::badge color="warning">{{ $dependency->current_version }} &rarr; {{ $dependency->latest_version }}</x-filament::badge>
+                        </span>
+                    </div>
+                @endforeach
             </div>
-          @foreach($dependencies as $dependency)
-                <div class="flex justify-between py-2">
-                    <div class="text-sm text-gray-500 dark:text-gray-400">
-                        <a href="https://packagist.org/packages/{{ $dependency->name }}" target="_blank" class="hover:text-primary-600 hover:underline">
-                            {{ $dependency->name }}
-                        </a>
-                    </div>
-                    <div class="text-sm text-gray-500 dark:text-gray-400 flex gap-2">
-                        <x-filament::badge color="warning">{{ $dependency->current_version }} > {{ $dependency->latest_version }}</x-filament::badge>
-                    </div>
-                </div>
-          @endforeach
         @else
-            <div class="fi-ta-empty-state-content mx-auto grid max-w-lg justify-items-center text-center">
-                <div class="fi-ta-empty-state-icon-ctn mb-4 rounded-full bg-gray-100 p-3 dark:bg-gray-500/20">
-                    <x-filament::icon
-                            icon="heroicon-o-check-circle"
-                            class="fi-ta-empty-state-icon h-6 w-6 text-primary-600 dark:text-primary-600"
-                    />
+            <div class="fsv-empty">
+                <div class="fsv-empty-icon">
+                    <x-filament::icon icon="heroicon-o-check-circle" />
                 </div>
 
-                <p class="fi-ta-empty-state-description text-sm text-gray-500 dark:text-gray-400 mt-1">
+                <p class="fsv-empty-text">
                     {{ __('filament-system-versions::system-versions.widgets.dependency.empty') }}
                 </p>
             </div>

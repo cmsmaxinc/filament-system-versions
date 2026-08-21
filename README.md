@@ -228,13 +228,16 @@ To add widgets to custom blade views:
 </x-filament-panels::page>
 ```
 
-### Custom Theme Support
+### Styling
 
-If you're using a custom theme, add the following to your `theme.css` file to ensure proper styling:
+The package ships its own stylesheet and registers it through Filament's asset system, so the widgets are styled out of the box — no custom theme configuration is required. If the styles look stale after updating the package, republish Filament's assets:
 
-```css
-@source '../../../../vendor/cmsmaxinc/filament-system-versions/resources/**/*.blade.php';
+```bash
+php artisan filament:assets
 ```
+
+> [!NOTE]
+> Older versions of this package required adding an `@source` line for the vendor views to your custom theme's `theme.css`. That is no longer necessary and the line can be removed.
 
 ### Contact Info
 

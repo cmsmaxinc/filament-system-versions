@@ -8,10 +8,8 @@ use Cmsmaxinc\FilamentSystemVersions\Filament\Widgets\DependencyWidget;
 use Cmsmaxinc\FilamentSystemVersions\Filament\Widgets\SystemInfoWidget;
 use Cmsmaxinc\FilamentSystemVersions\Filament\Widgets\SystemVersionStats;
 use Cmsmaxinc\FilamentSystemVersions\Testing\TestsFilamentSystemVersions;
-use Filament\Support\Assets\AlpineComponent;
 use Filament\Support\Assets\Asset;
 use Filament\Support\Assets\Css;
-use Filament\Support\Assets\Js;
 use Filament\Support\Facades\FilamentAsset;
 use Filament\Support\Facades\FilamentIcon;
 use Illuminate\Filesystem\Filesystem;
@@ -109,9 +107,7 @@ class FilamentSystemVersionsServiceProvider extends PackageServiceProvider
     protected function getAssets(): array
     {
         return [
-            // AlpineComponent::make('filament-system-versions', __DIR__ . '/../resources/dist/components/filament-system-versions.js'),
-            //            Css::make('filament-system-versions-styles', __DIR__ . '/../resources/dist/filament-system-versions.css'),
-            //            Js::make('filament-system-versions-scripts', __DIR__ . '/../resources/dist/filament-system-versions.js'),
+            Css::make('filament-system-versions-styles', __DIR__ . '/../resources/css/filament-system-versions.css'),
         ];
     }
 
