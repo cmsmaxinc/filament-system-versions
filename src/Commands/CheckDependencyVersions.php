@@ -14,7 +14,7 @@ class CheckDependencyVersions extends Command
 
     public $description = 'Check the versions of all dependencies.';
 
-    public function handle(): void
+    public function handle(): int
     {
         // TODO: Grab all packages including up-to-date ones
         // Get the configuration values for PHP and Composer
@@ -62,14 +62,14 @@ class CheckDependencyVersions extends Command
             // Log the error but don't re-throw - just return gracefully
             $this->error('Failed to parse composer output. Check logs for details.');
 
-            return;
+            return self::FAILURE;
         }
 
         // Validate that we have the expected structure
         if (! isset($results->installed) || ! is_array($results->installed)) {
             $this->error('Invalid composer output structure. Expected "installed" array.');
 
-            return;
+            return self::FAILURE;
         }
 
         $table = config('filament-system-versions.database.table_name', 'composer_versions');
@@ -107,6 +107,8 @@ class CheckDependencyVersions extends Command
                 DB::table($table)->insert($chunk);
             }
         });
+
+        return self::SUCCESS;
     }
 
     /**

@@ -167,6 +167,8 @@ To check for outdated composer dependencies:
 php artisan dependency:versions
 ```
 
+Administrators who can access the System Versions page can also select **Check now** in the page header. The action runs the same command, prevents overlapping checks, refreshes the widgets after a successful run, and keeps the previous snapshot when the check fails.
+
 #### Automatic Scheduling
 
 Add the command to your scheduler to run it automatically:
