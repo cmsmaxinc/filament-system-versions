@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Cmsmaxinc\FilamentSystemVersions\Filament\Widgets;
 
+use Cmsmaxinc\FilamentSystemVersions\Filament\Pages\SystemVersions;
 use Cmsmaxinc\FilamentSystemVersions\FilamentSystemVersionsPlugin;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
+use Livewire\Attributes\On;
 
 class SystemVersionStats extends BaseWidget
 {
@@ -36,6 +38,9 @@ class SystemVersionStats extends BaseWidget
 
         return $stats;
     }
+
+    #[On(SystemVersions::DEPENDENCY_VERSIONS_REFRESHED_EVENT)]
+    public function refreshDependencyVersions(): void {}
 
     protected function getConfiguredPackages(): array
     {

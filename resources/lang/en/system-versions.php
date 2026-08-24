@@ -5,6 +5,20 @@ return [
         'label' => 'System Versions',
         'group' => 'Settings',
     ],
+    'actions' => [
+        'check_now' => [
+            'label' => 'Check now',
+            'modal_heading' => 'Check dependency versions now?',
+            'modal_description' => 'This contacts the configured Composer repositories and refreshes the stored dependency snapshot.',
+            'modal_submit' => 'Check now',
+            'success_title' => 'Dependency versions updated',
+            'success_body' => 'The package information on this page is now current.',
+            'already_running_title' => 'Check already running',
+            'already_running_body' => 'Another dependency version check is in progress. Try again in a few minutes.',
+            'failure_title' => 'Unable to check dependency versions',
+            'failure_body' => 'The existing snapshot was kept. Review the application logs and try again.',
+        ],
+    ],
     'widgets' => [
         'dependency' => [
             'heading' => 'Packages',

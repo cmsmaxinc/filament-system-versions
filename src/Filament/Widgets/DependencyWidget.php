@@ -2,9 +2,11 @@
 
 namespace Cmsmaxinc\FilamentSystemVersions\Filament\Widgets;
 
+use Cmsmaxinc\FilamentSystemVersions\Filament\Pages\SystemVersions;
 use Filament\Widgets\Widget;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Livewire\Attributes\On;
 
 class DependencyWidget extends Widget
 {
@@ -19,6 +21,9 @@ class DependencyWidget extends Widget
     {
         return __('filament-system-versions::system-versions.widgets.dependency.description');
     }
+
+    #[On(SystemVersions::DEPENDENCY_VERSIONS_REFRESHED_EVENT)]
+    public function refreshDependencyVersions(): void {}
 
     protected function getViewData(): array
     {
