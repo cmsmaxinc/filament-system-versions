@@ -21,10 +21,16 @@ class CheckDependencyVersions extends Command
         $phpPath = config('filament-system-versions.paths.php_path');
         $composerPath = config('filament-system-versions.paths.composer_path');
 
+        // Composer resolves composer.json from the working directory, and a
+        // queue worker's or web server's cwd is not necessarily the app root
+        // (Laravel Cloud runs from `/` while the app lives in /var/www/html),
+        // so the process is pinned to base_path() explicitly.
+        $process = Process::path(base_path());
+
         // Check if PHP and Composer paths are set in the config, and if not, use the default approach
         if ($phpPath && $composerPath) {
             // If both PHP and Composer paths are set, run the command with the specified paths
-            $result = Process::run([
+            $result = $process->run([
                 $phpPath,
                 $composerPath,
                 'show',
@@ -33,7 +39,7 @@ class CheckDependencyVersions extends Command
             ]);
         } else {
             // If PHP or Composer path is not set, run the default Composer command
-            $result = Process::run('composer show --latest --format=json');
+            $result = $process->run('composer show --latest --format=json');
         }
 
         if ($result->failed()) {
