@@ -2,6 +2,7 @@
 
 use Illuminate\Process\PendingProcess;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Process;
 
 beforeEach(function () {
@@ -52,3 +53,78 @@ it('stores the reported packages', function () use ($composerOutput) {
             ->latest_version->toBe('1.1.0')
             ->status->toBe('semver-safe-update'));
 });
+
+it('retries once when composer returns unparseable output, then succeeds', function () use ($composerOutput) {
+    // `composer show --latest` hits Packagist and any private repositories, so a
+    // momentary blip can exit 0 with unusable output. That should self-heal
+    // rather than raise an alert.
+    Process::fake([
+        '*' => Process::sequence()
+            ->push(Process::result('not json at all'))
+            ->push(Process::result($composerOutput)),
+    ]);
+
+    $this->artisan('dependency:versions')->assertSuccessful();
+
+    expect(DB::table('composer_versions')->get())->toHaveCount(1);
+});
+
+it('fails only after the retry also returns unparseable output', function () {
+    Process::fake([
+        '*' => Process::result('not json at all'),
+    ]);
+
+    $this->artisan('dependency:versions')->assertFailed();
+
+    // Twice, not once: the retry is what keeps a single blip from alerting.
+    Process::assertRanTimes(fn (PendingProcess $process) => $process->path === base_path(), 2);
+
+    expect(DB::table('composer_versions')->get())->toBeEmpty();
+});
+
+it('reports empty composer output as such rather than as a JSON syntax error', function () {
+    // Exit code 0 with nothing on stdout used to surface as a bare
+    // "JSON decode failed: Syntax error", which points at the wrong problem.
+    Log::spy();
+
+    Process::fake([
+        '*' => Process::result(''),
+    ]);
+
+    $this->artisan('dependency:versions')->assertFailed();
+
+    Log::shouldHaveReceived('error')
+        ->withArgs(fn (...$args) => str_contains($args[0], 'Composer produced no output'));
+});
+
+it('keeps the previous snapshot when composer output cannot be parsed', function () {
+    DB::table('composer_versions')->insert([
+        'name' => 'vendor/previous',
+        'current_version' => '1.0.0',
+        'latest_version' => '1.0.0',
+        'status' => 'up-to-date',
+        'direct_dependency' => true,
+        'description' => 'Kept from the last good run.',
+        'abandoned' => false,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    Process::fake([
+        '*' => Process::result('not json at all'),
+    ]);
+
+    $this->artisan('dependency:versions')->assertFailed();
+
+    expect(DB::table('composer_versions')->get())
+        ->toHaveCount(1)
+        ->sequence(fn ($row) => $row->name->toBe('vendor/previous'));
+});
+
+it('throws when composer itself fails', function () {
+    Process::fake([
+        '*' => Process::result(output: '', errorOutput: 'Could not authenticate', exitCode: 1),
+    ]);
+
+    $this->artisan('dependency:versions');
+})->throws(RuntimeException::class, 'Composer outdated failed: Could not authenticate');

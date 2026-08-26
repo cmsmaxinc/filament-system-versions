@@ -3,9 +3,12 @@
 namespace Cmsmaxinc\FilamentSystemVersions\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Contracts\Process\ProcessResult;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Process;
+use JsonException;
 use RuntimeException;
+use Throwable;
 use TypeError;
 
 class CheckDependencyVersions extends Command
@@ -14,58 +17,41 @@ class CheckDependencyVersions extends Command
 
     public $description = 'Check the versions of all dependencies.';
 
+    /**
+     * How much of composer's output to keep in log context, so a failure is
+     * diagnosable without writing a megabyte of JSON into the log.
+     */
+    private const OUTPUT_SAMPLE_LENGTH = 1000;
+
     public function handle(): int
     {
-        // TODO: Grab all packages including up-to-date ones
-        // Get the configuration values for PHP and Composer
-        $phpPath = config('filament-system-versions.paths.php_path');
-        $composerPath = config('filament-system-versions.paths.composer_path');
+        $result = $this->runComposerShow();
 
-        // Composer resolves composer.json from the working directory, and a
-        // queue worker's or web server's cwd is not necessarily the app root
-        // (Laravel Cloud runs from `/` while the app lives in /var/www/html),
-        // so the process is pinned to base_path() explicitly.
-        $process = Process::path(base_path());
+        [$results, $failure, $exception] = $this->decodeComposerOutput($result);
 
-        // Check if PHP and Composer paths are set in the config, and if not, use the default approach
-        if ($phpPath && $composerPath) {
-            // If both PHP and Composer paths are set, run the command with the specified paths
-            $result = $process->run([
-                $phpPath,
-                $composerPath,
-                'show',
-                '--latest',
-                '--format=json',
-            ]);
-        } else {
-            // If PHP or Composer path is not set, run the default Composer command
-            $result = $process->run('composer show --latest --format=json');
+        // `composer show --latest` reaches out to Packagist and to any private
+        // repositories the app uses, so a momentary network or auth blip can
+        // produce exit code 0 with unusable output. Retry once before treating
+        // that as a real problem: otherwise a single blip raises an alert for a
+        // nightly command that would have healed itself on the next run.
+        if ($results === null) {
+            logger()->warning(
+                'Composer output could not be parsed, retrying once. ' . $failure,
+                $this->failureContext($result)
+            );
+
+            $result = $this->runComposerShow();
+
+            [$results, $failure, $exception] = $this->decodeComposerOutput($result);
         }
 
-        if ($result->failed()) {
-            throw new RuntimeException('Composer outdated failed: ' . $result->errorOutput());
-        }
+        if ($results === null) {
+            logger()->error($failure, $this->failureContext($result) + ['exception' => $exception]);
 
-        $output = $this->cleanJsonOutput($result->output());
+            // Only report once the retry has also failed, so an alert means
+            // "this is persistently broken" rather than "the network hiccuped".
+            report(new \Exception($failure . ' See logs for details.', 0, $exception));
 
-        try {
-            $results = json_decode($output, flags: JSON_THROW_ON_ERROR);
-        } catch (\JsonException | TypeError $e) {
-            // Get a sample of the output (first 1000 chars) to avoid huge log entries
-            $sampleOutput = substr($output, 0, 1000) . (strlen($output) > 1000 ? '...(truncated)' : '');
-
-            $errorMessage = 'JSON decode failed: ' . $e->getMessage();
-            logger()->error($errorMessage, [
-                'output_sample' => $sampleOutput,
-                'output_length' => strlen($output),
-                'original_output_length' => strlen($result->output()),
-                'exception' => $e,
-            ]);
-
-            // Report to error tracking (Nightwatch) and continue gracefully
-            report(new \Exception($errorMessage . ' See logs for details.', 0, $e));
-
-            // Log the error but don't re-throw - just return gracefully
             $this->error('Failed to parse composer output. Check logs for details.');
 
             return self::FAILURE;
@@ -115,6 +101,94 @@ class CheckDependencyVersions extends Command
         });
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Run `composer show --latest --format=json` against the application root.
+     */
+    private function runComposerShow(): ProcessResult
+    {
+        // Get the configuration values for PHP and Composer
+        $phpPath = config('filament-system-versions.paths.php_path');
+        $composerPath = config('filament-system-versions.paths.composer_path');
+
+        // Composer resolves composer.json from the working directory, and a
+        // queue worker's or web server's cwd is not necessarily the app root
+        // (Laravel Cloud runs from `/` while the app lives in /var/www/html),
+        // so the process is pinned to base_path() explicitly.
+        $process = Process::path(base_path());
+
+        // Check if PHP and Composer paths are set in the config, and if not, use the default approach
+        if ($phpPath && $composerPath) {
+            // If both PHP and Composer paths are set, run the command with the specified paths
+            $result = $process->run([
+                $phpPath,
+                $composerPath,
+                'show',
+                '--latest',
+                '--format=json',
+            ]);
+        } else {
+            // If PHP or Composer path is not set, run the default Composer command
+            $result = $process->run('composer show --latest --format=json');
+        }
+
+        if ($result->failed()) {
+            throw new RuntimeException('Composer outdated failed: ' . $result->errorOutput());
+        }
+
+        return $result;
+    }
+
+    /**
+     * Decode composer's JSON output.
+     *
+     * @return array{0: ?object, 1: ?string, 2: ?Throwable} the decoded payload, or null
+     *                                                      plus a description of why it could not be decoded
+     */
+    private function decodeComposerOutput(ProcessResult $result): array
+    {
+        $output = $this->cleanJsonOutput($result->output());
+
+        // Composer exiting 0 with nothing on stdout decodes as a bare "Syntax
+        // error", which reads as malformed JSON and sends you looking for the
+        // wrong thing. Name it for what it actually is instead.
+        if ($output === '') {
+            return [null, 'Composer produced no output to parse.', null];
+        }
+
+        try {
+            return [json_decode($output, flags: JSON_THROW_ON_ERROR), null, null];
+        } catch (JsonException | TypeError $e) {
+            return [null, 'JSON decode failed: ' . $e->getMessage(), $e];
+        }
+    }
+
+    /**
+     * Context describing a failed composer run.
+     *
+     * Includes stderr: composer writes warnings and network/auth errors there,
+     * so when stdout is empty or truncated it is the only thing that explains
+     * why — and it was the piece missing when this last failed in production.
+     *
+     * @return array<string, mixed>
+     */
+    private function failureContext(ProcessResult $result): array
+    {
+        $output = $this->cleanJsonOutput($result->output());
+
+        return [
+            'output_sample' => $this->sample($output),
+            'output_length' => strlen($output),
+            'original_output_length' => strlen($result->output()),
+            'error_output' => $this->sample($result->errorOutput()),
+        ];
+    }
+
+    private function sample(string $value): string
+    {
+        return substr($value, 0, self::OUTPUT_SAMPLE_LENGTH)
+            . (strlen($value) > self::OUTPUT_SAMPLE_LENGTH ? '...(truncated)' : '');
     }
 
     /**
