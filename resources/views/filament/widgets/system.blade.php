@@ -4,10 +4,18 @@
             :description="$description"
     >
         <div class="fsv-list">
-            @foreach($details as $key => $value)
+            @foreach($details as $detail)
                 <div class="fsv-row">
-                    <span class="fsv-label">{{ $key }}</span>
-                    <span class="fsv-value">{{ $value }}</span>
+                    <span class="fsv-label">{{ $detail['label'] }}</span>
+                    <span class="fsv-value">
+                        @if(filled($detail['url'] ?? null))
+                            <a href="{{ $detail['url'] }}" target="_blank" rel="noopener noreferrer" class="fsv-link">
+                                {{ $detail['value'] }}
+                            </a>
+                        @else
+                            {{ $detail['value'] }}
+                        @endif
+                    </span>
                 </div>
             @endforeach
             <div class="fsv-row">

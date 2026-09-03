@@ -25,6 +25,8 @@ class FilamentSystemVersionsPlugin implements Plugin
 
     protected array $statsPackages = [];
 
+    protected array | Closure $technologies = [];
+
     public function getId(): string
     {
         return 'filament-system-versions';
@@ -133,5 +135,18 @@ class FilamentSystemVersionsPlugin implements Plugin
         }
 
         return $this->statsPackages;
+    }
+
+    public function technologies(array | Closure $technologies): static
+    {
+        $this->technologies = $technologies;
+
+        return $this;
+    }
+
+    /** @return array<int, array{label: string, version: string, url?: string|null}> */
+    public function getTechnologies(): array
+    {
+        return $this->evaluate($this->technologies) ?: config('filament-system-versions.technologies', []);
     }
 }

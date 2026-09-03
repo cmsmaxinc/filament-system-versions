@@ -5,6 +5,7 @@ namespace Cmsmaxinc\FilamentSystemVersions;
 use Cmsmaxinc\FilamentSystemVersions\Commands\CheckDependencyVersions;
 use Cmsmaxinc\FilamentSystemVersions\Filament\Widgets\DependencyStat;
 use Cmsmaxinc\FilamentSystemVersions\Filament\Widgets\DependencyWidget;
+use Cmsmaxinc\FilamentSystemVersions\Filament\Widgets\NpmDependencyWidget;
 use Cmsmaxinc\FilamentSystemVersions\Filament\Widgets\SystemInfoWidget;
 use Cmsmaxinc\FilamentSystemVersions\Filament\Widgets\SystemVersionStats;
 use Cmsmaxinc\FilamentSystemVersions\Testing\TestsFilamentSystemVersions;
@@ -66,6 +67,7 @@ class FilamentSystemVersionsServiceProvider extends PackageServiceProvider
         // Register Livewire components
         Livewire::component('cmsmaxinc.filament-system-versions.filament.widgets.system-version-stats', SystemVersionStats::class);
         Livewire::component('cmsmaxinc.filament-system-versions.filament.widgets.dependency-widget', DependencyWidget::class);
+        Livewire::component('cmsmaxinc.filament-system-versions.filament.widgets.npm-dependency-widget', NpmDependencyWidget::class);
         Livewire::component('cmsmaxinc.filament-system-versions.filament.widgets.system-info-widget', SystemInfoWidget::class);
         Livewire::component('cmsmaxinc.filament-system-versions.filament.widgets.dependency-stat', DependencyStat::class);
 
