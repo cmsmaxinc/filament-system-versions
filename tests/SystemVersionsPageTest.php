@@ -4,6 +4,7 @@ use Cmsmaxinc\FilamentSystemVersions\DependencyVersionRefresher;
 use Cmsmaxinc\FilamentSystemVersions\DependencyVersionRefreshResult;
 use Cmsmaxinc\FilamentSystemVersions\Filament\Pages\SystemVersions;
 use Cmsmaxinc\FilamentSystemVersions\Filament\Widgets\DependencyWidget;
+use Cmsmaxinc\FilamentSystemVersions\Filament\Widgets\SystemInfoWidget;
 use Cmsmaxinc\FilamentSystemVersions\Filament\Widgets\SystemVersionStats;
 use Cmsmaxinc\FilamentSystemVersions\FilamentSystemVersionsPlugin;
 use Filament\Actions\Action;
@@ -98,5 +99,6 @@ it('refreshes dependency widgets after a successful check', function (string $wi
         ->toBe(SystemVersions::DEPENDENCY_VERSIONS_REFRESHED_EVENT);
 })->with([
     'dependency widget' => [DependencyWidget::class],
+    'system info widget' => [SystemInfoWidget::class],
     'system version stats' => [SystemVersionStats::class],
 ]);

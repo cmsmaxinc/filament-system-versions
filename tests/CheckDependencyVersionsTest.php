@@ -1,6 +1,8 @@
 <?php
 
+use Cmsmaxinc\FilamentSystemVersions\RuntimeVersionResolver;
 use Illuminate\Process\PendingProcess;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Process;
@@ -52,6 +54,40 @@ it('stores the reported packages', function () use ($composerOutput) {
             ->current_version->toBe('1.0.0')
             ->latest_version->toBe('1.1.0')
             ->status->toBe('semver-safe-update'));
+});
+
+it('refreshes cached runtime versions after a successful dependency snapshot', function () use ($composerOutput) {
+    Process::fake([
+        '*show --latest*' => Process::result($composerOutput),
+        '*composer*' => Process::result('Composer version 2.8.11 2025-01-01 00:00:00'),
+        '*node*' => Process::result('v22.14.0'),
+        '*npm*' => Process::result('11.1.0'),
+    ]);
+
+    $this->artisan('dependency:versions')->assertSuccessful();
+
+    expect(Cache::get(RuntimeVersionResolver::CACHE_KEY))->toBe([
+        'composer' => '2.8.11',
+        'node' => '22.14.0',
+        'npm' => '11.1.0',
+    ]);
+});
+
+it('uses a configured Composer executable even when no PHP path is configured', function () use ($composerOutput) {
+    config()->set('filament-system-versions.paths.composer_path', '/opt/tools/composer');
+    config()->set('filament-system-versions.paths.php_path', '');
+    Process::fake([
+        '*' => Process::result($composerOutput),
+    ]);
+
+    $this->artisan('dependency:versions')->assertSuccessful();
+
+    Process::assertRan(fn (PendingProcess $process): bool => $process->command === [
+        '/opt/tools/composer',
+        'show',
+        '--latest',
+        '--format=json',
+    ]);
 });
 
 it('retries once when composer returns unparseable output, then succeeds', function () use ($composerOutput) {

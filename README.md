@@ -2,14 +2,16 @@
 
 ![Filament System Versions](https://github.com/cmsmaxinc/filament-system-versions/raw/main/thumbnail.jpg)
 
-This package provides a comprehensive system information page and widgets for Filament panels, showcasing current system versions, PHP information, and Composer dependencies.
+This package provides a comprehensive, administrator-facing technology inventory for Filament panels. It combines runtime versions, every installed Composer package, and every resolved npm package instance in one organized page.
 
 ## Features
 
 - 📊 **System Versions Page** - A dedicated page displaying system information
-- 🔍 **Dependency Monitoring** - Track outdated and abandoned Composer dependencies, color-coded by update severity
+- 🔍 **Complete Composer Inventory** - Show up-to-date, outdated, and abandoned packages grouped into direct/transitive and runtime/development sections
+- 📦 **Exact npm Inventory** - Read `package-lock.json` v2/v3 and retain every resolved package instance, including nested duplicate versions and optional or peer packages
 - 📈 **System Stats Widget** - Display Laravel and Filament versions
-- ⚙️ **System Info Widget** - Show environment, debug mode, timezone, PHP version, and Laravel version
+- ⚙️ **Runtime Versions** - Show PHP, Laravel, Filament, Composer, Node.js, npm, environment, debug mode, and timezone
+- 🧩 **Custom Technologies** - Add standalone binaries or project-specific technology versions that package managers cannot discover
 - 🎨 **Customizable Navigation** - Configure navigation group, icon, label, and sort order
 - 🔒 **Authorization Control** – Define who can access the page using a boolean or a closure
 
@@ -61,15 +63,18 @@ return [
     'database' => [
         'table_name' => 'composer_versions',
     ],
-    'widgets' => [
-        'dependency' => [
-            'show_direct_only' => true,
-        ],
-    ],
     'paths' => [
         'php_path' => env('PHP_PATH', ''),
         'composer_path' => env('COMPOSER_PATH', ''),
+        'node_path' => env('SYSTEM_VERSIONS_NODE_BINARY', ''),
+        'npm_path' => env('SYSTEM_VERSIONS_NPM_BINARY', ''),
     ],
+    'inventory' => [
+        'composer_lock' => 'composer.lock',
+        'package_json' => 'package.json',
+        'package_lock' => 'package-lock.json',
+    ],
+    'technologies' => [],
 ];
 ```
 
@@ -87,9 +92,10 @@ php artisan vendor:publish --tag="filament-system-versions-translations"
 
 Once the plugin is registered, a "System Versions" page will automatically be added to your Filament panel under the "Settings" navigation group. This page displays:
 
-- System version statistics (Laravel & Filament versions)
-- Outdated dependency information
-- System environment details
+- System and command-line runtime versions
+- Every Composer package, with current/latest versions and update status
+- Every package instance resolved in `package-lock.json`
+- Logical, collapsible direct/runtime/development/transitive groups
 
 ### Customizing Navigation
 
@@ -146,7 +152,7 @@ public function panel(Panel $panel): Panel
 ```
 
 > [!TIP]
-> Exact framework and package versions are useful reconnaissance for an attacker. Consider restricting this page to administrators rather than leaving it visible to every panel user (the default is `true`, i.e. visible to everyone with panel access).
+> Exact framework and package versions are useful reconnaissance for an attacker. This page now provides a complete dependency inventory, so you should restrict it to administrators. The default remains `true` for backward compatibility, which means it is visible to everyone with panel access until you configure `authorize()`.
 
 #### Available Configuration Methods
 
@@ -155,19 +161,41 @@ public function panel(Panel $panel): Panel
 - `navigationIcon(string | BackedEnum | Closure | null $icon)` - Set the navigation icon (default: 'heroicon-o-document-text')
 - `navigationSort(int | Closure | null $sort)` - Set the navigation sort order (default: 99999)
 - `authorize(bool | Closure)` - Define whether the current user is allowed to access the page. Accepts either a `bool` (`true` or `false`) or a `Closure` that returns a boolean (default: true).
+- `technologies(array | Closure)` - Add standalone or project-specific technology versions to the System details widget.
+
+### Adding Standalone Technologies
+
+Composer and npm packages are discovered automatically. Add tools that live outside those package managers through the plugin:
+
+```php
+->plugin(
+    FilamentSystemVersionsPlugin::make()
+        ->technologies(fn () => [
+            [
+                'label' => 'Pocketknife',
+                'version' => config('services.pocketknife.version'),
+                'url' => 'https://example.com/tooling',
+            ],
+        ])
+)
+```
+
+Each item requires `label`; `version` and `url` are optional. A missing version is displayed as unavailable. You can also place the same array under `technologies` in the published config.
 
 ### Dependency Versions Command
 
 > [!NOTE]  
-> Make sure you run this command at least once to store the current composer dependencies.
+> Make sure you run this command at least once to store the current Composer dependency snapshot.
 
-To check for outdated composer dependencies:
+To refresh current/latest metadata for all Composer dependencies:
 
 ```bash
 php artisan dependency:versions
 ```
 
 Administrators who can access the System Versions page can also select **Check now** in the page header. The action runs the same command, prevents overlapping checks, refreshes the widgets after a successful run, and keeps the previous snapshot when the check fails.
+
+The npm inventory does not contact the registry. It is read directly from the configured `package-lock.json` on each page render, so it always reflects the exact versions committed or deployed with the application. Composer, Node.js, and npm executable versions are refreshed by the dependency command and read from cache without spawning subprocesses during a page request.
 
 #### Automatic Scheduling
 
@@ -186,13 +214,25 @@ You can also use the widgets independently in your own pages or dashboards:
 
 #### DependencyWidget
 
-Displays all outdated composer dependencies with current and latest versions:
+Displays every installed Composer package with current/latest versions, update status, abandonment status, and logical scope:
 
 ```php
 use Cmsmaxinc\FilamentSystemVersions\Filament\Widgets\DependencyWidget;
 
 ->widgets([
     DependencyWidget::class
+])
+```
+
+#### NpmDependencyWidget
+
+Displays every resolved npm package instance from a lockfile:
+
+```php
+use Cmsmaxinc\FilamentSystemVersions\Filament\Widgets\NpmDependencyWidget;
+
+->widgets([
+    NpmDependencyWidget::class
 ])
 ```
 
@@ -239,6 +279,7 @@ To add widgets to custom blade views:
 ```blade
 <x-filament-panels::page>
     @livewire(\Cmsmaxinc\FilamentSystemVersions\Filament\Widgets\DependencyWidget::class)
+    @livewire(\Cmsmaxinc\FilamentSystemVersions\Filament\Widgets\NpmDependencyWidget::class)
     @livewire(\Cmsmaxinc\FilamentSystemVersions\Filament\Widgets\SystemInfoWidget::class)
 </x-filament-panels::page>
 ```

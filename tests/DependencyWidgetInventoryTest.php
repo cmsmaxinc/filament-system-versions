@@ -1,0 +1,85 @@
+<?php
+
+use Cmsmaxinc\FilamentSystemVersions\Filament\Widgets\DependencyWidget;
+use Filament\Facades\Filament;
+use Filament\Panel;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\MessageBag;
+use Livewire\Livewire;
+
+class RenderableDependencyInventoryWidget extends DependencyWidget
+{
+    public function getErrorBag(): MessageBag
+    {
+        return new MessageBag;
+    }
+}
+
+beforeEach(function () {
+    $migration = include __DIR__ . '/../database/migrations/create_composer_versions_table.php.stub';
+    $migration->up();
+
+    $this->composerLock = tempnam(sys_get_temp_dir(), 'fsv-composer-');
+    config()->set('filament-system-versions.inventory.composer_lock', $this->composerLock);
+    Filament::setCurrentPanel(Panel::make()->id('test'));
+});
+
+afterEach(function () {
+    if (is_string($this->composerLock) && is_file($this->composerLock)) {
+        unlink($this->composerLock);
+    }
+});
+
+it('includes up-to-date packages and organizes every Composer dependency', function () {
+    file_put_contents($this->composerLock, json_encode([
+        'packages' => [
+            ['name' => 'vendor/direct-current', 'version' => '1.0.0'],
+        ],
+        'packages-dev' => [
+            ['name' => 'vendor/transitive-update', 'version' => '2.0.0'],
+        ],
+    ], JSON_THROW_ON_ERROR));
+
+    DB::table('composer_versions')->insert([
+        [
+            'name' => 'vendor/direct-current',
+            'current_version' => '1.0.0',
+            'latest_version' => '1.0.0',
+            'status' => 'up-to-date',
+            'description' => null,
+            'direct_dependency' => true,
+            'abandoned' => false,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ],
+        [
+            'name' => 'vendor/transitive-update',
+            'current_version' => '2.0.0',
+            'latest_version' => '3.0.0',
+            'status' => 'update-possible',
+            'description' => null,
+            'direct_dependency' => false,
+            'abandoned' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ],
+    ]);
+
+    $method = new ReflectionMethod(DependencyWidget::class, 'getViewData');
+    $data = $method->invoke(new DependencyWidget);
+
+    expect($data['dependencies'])->toHaveCount(2)
+        ->and($data['total'])->toBe(2)
+        ->and($data['updates'])->toBe(1)
+        ->and($data['abandoned'])->toBe(1)
+        ->and($data['groups']->pluck('key')->all())->toBe([
+            'direct-runtime',
+            'transitive-development',
+        ]);
+
+    Livewire::test(RenderableDependencyInventoryWidget::class)
+        ->assertSee('Composer packages')
+        ->assertSee('vendor/direct-current')
+        ->assertSee('Up to date')
+        ->assertSee('Transitive development packages');
+});
