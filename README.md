@@ -66,14 +66,13 @@ return [
     'paths' => [
         'php_path' => env('PHP_PATH', ''),
         'composer_path' => env('COMPOSER_PATH', ''),
-        'node_path' => env('NODE_PATH', ''),
-        'npm_path' => env('NPM_PATH', ''),
+        'node_path' => env('SYSTEM_VERSIONS_NODE_BINARY', ''),
+        'npm_path' => env('SYSTEM_VERSIONS_NPM_BINARY', ''),
     ],
     'inventory' => [
         'composer_lock' => 'composer.lock',
         'package_json' => 'package.json',
         'package_lock' => 'package-lock.json',
-        'runtime_cache_seconds' => 3600,
     ],
     'technologies' => [],
 ];
@@ -153,7 +152,7 @@ public function panel(Panel $panel): Panel
 ```
 
 > [!TIP]
-> Exact framework and package versions are useful reconnaissance for an attacker. Consider restricting this page to administrators rather than leaving it visible to every panel user (the default is `true`, i.e. visible to everyone with panel access).
+> Exact framework and package versions are useful reconnaissance for an attacker. This page now provides a complete dependency inventory, so you should restrict it to administrators. The default remains `true` for backward compatibility, which means it is visible to everyone with panel access until you configure `authorize()`.
 
 #### Available Configuration Methods
 
@@ -181,7 +180,7 @@ Composer and npm packages are discovered automatically. Add tools that live outs
 )
 ```
 
-Each item requires `label` and `version`; `url` is optional. You can also place the same array under `technologies` in the published config.
+Each item requires `label`; `version` and `url` are optional. A missing version is displayed as unavailable. You can also place the same array under `technologies` in the published config.
 
 ### Dependency Versions Command
 
@@ -196,7 +195,7 @@ php artisan dependency:versions
 
 Administrators who can access the System Versions page can also select **Check now** in the page header. The action runs the same command, prevents overlapping checks, refreshes the widgets after a successful run, and keeps the previous snapshot when the check fails.
 
-The npm inventory does not contact the registry. It is read directly from the configured `package-lock.json` on each page render, so it always reflects the exact versions committed or deployed with the application. Runtime command versions are cached for one hour by default.
+The npm inventory does not contact the registry. It is read directly from the configured `package-lock.json` on each page render, so it always reflects the exact versions committed or deployed with the application. Composer, Node.js, and npm executable versions are refreshed by the dependency command and read from cache without spawning subprocesses during a page request.
 
 #### Automatic Scheduling
 

@@ -13,8 +13,6 @@ class DependencyWidget extends Widget
 {
     protected string $view = 'filament-system-versions::filament.widgets.dependency';
 
-    protected int | string | array $columnSpan = 'full';
-
     public function getCardHeading(): string
     {
         return __('filament-system-versions::system-versions.widgets.dependency.heading');

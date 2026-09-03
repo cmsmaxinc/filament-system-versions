@@ -39,7 +39,6 @@ return [
         'dependency' => [
             'heading' => 'Composer-packages',
             'description' => 'Elk geïnstalleerd Composer-package, gegroepeerd op relatie en applicatiebereik',
-            'empty' => 'Geen dependencies met beschikbare updates',
             'abandoned' => 'Niet meer onderhouden',
             'summary_label' => 'Samenvatting Composer-packages',
             'total' => 'geïnstalleerd',
@@ -56,7 +55,11 @@ return [
         'npm' => [
             'heading' => 'npm-packages',
             'description' => 'Elke opgeloste package-instantie uit package-lock.json, inclusief geneste versies',
-            'missing_lock' => 'Er is geen leesbaar package-lock.json gevonden. Configureer het pad als dit project het lockbestand elders bewaart.',
+            'unavailable' => [
+                'missing' => 'Er is geen package-lock.json gevonden. Configureer het pad als dit project het lockbestand elders bewaart.',
+                'invalid' => 'package-lock.json kon niet als geldig npm-lockbestand worden gelezen.',
+                'unsupported' => 'Deze versie van package-lock.json wordt niet ondersteund. Genereer een lockbestand met npm 7 of nieuwer.',
+            ],
             'summary_label' => 'Samenvatting npm-packages',
             'instances' => 'opgeloste instanties',
             'unique_versions' => 'unieke packageversies',

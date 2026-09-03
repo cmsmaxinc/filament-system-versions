@@ -7,6 +7,7 @@ use Cmsmaxinc\FilamentSystemVersions\Filament\Pages\SystemVersions;
 use Filament\Contracts\Plugin;
 use Filament\Panel;
 use Filament\Support\Concerns\EvaluatesClosures;
+use Illuminate\Support\Enumerable;
 use UnitEnum;
 
 class FilamentSystemVersionsPlugin implements Plugin
@@ -25,7 +26,7 @@ class FilamentSystemVersionsPlugin implements Plugin
 
     protected array $statsPackages = [];
 
-    protected array | Closure $technologies = [];
+    protected array | Closure | null $technologies = null;
 
     public function getId(): string
     {
@@ -144,9 +145,17 @@ class FilamentSystemVersionsPlugin implements Plugin
         return $this;
     }
 
-    /** @return array<int, array{label: string, version: string, url?: string|null}> */
+    /** @return array<int, array{label: string, version?: scalar|null, url?: string|null}> */
     public function getTechnologies(): array
     {
-        return $this->evaluate($this->technologies) ?: config('filament-system-versions.technologies', []);
+        $technologies = $this->technologies === null
+            ? config('filament-system-versions.technologies', [])
+            : $this->evaluate($this->technologies);
+
+        if ($technologies instanceof Enumerable) {
+            $technologies = $technologies->all();
+        }
+
+        return is_array($technologies) ? $technologies : [];
     }
 }

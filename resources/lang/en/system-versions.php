@@ -39,7 +39,6 @@ return [
         'dependency' => [
             'heading' => 'Composer packages',
             'description' => 'Every installed Composer package, grouped by relationship and application scope',
-            'empty' => 'No packages with available updates',
             'abandoned' => 'Abandoned',
             'summary_label' => 'Composer package summary',
             'total' => 'installed',
@@ -56,7 +55,11 @@ return [
         'npm' => [
             'heading' => 'npm packages',
             'description' => 'Every resolved package instance from package-lock.json, including nested versions',
-            'missing_lock' => 'No readable package-lock.json was found. Configure the lockfile path if this project keeps it elsewhere.',
+            'unavailable' => [
+                'missing' => 'No package-lock.json was found. Configure the lockfile path if this project keeps it elsewhere.',
+                'invalid' => 'package-lock.json could not be read as a valid npm lockfile.',
+                'unsupported' => 'This package-lock.json version is unsupported. Generate a lockfile with npm 7 or newer.',
+            ],
             'summary_label' => 'npm package summary',
             'instances' => 'resolved instances',
             'unique_versions' => 'unique package versions',

@@ -35,9 +35,9 @@ it('evaluates navigation closures lazily', function () {
 
 it('evaluates custom technologies lazily', function () {
     $plugin = FilamentSystemVersionsPlugin::make()
-        ->technologies(fn () => [
+        ->technologies(fn () => collect([
             ['label' => 'Standalone tool', 'version' => '1.2.3'],
-        ]);
+        ]));
 
     expect($plugin->getTechnologies())->toBe([
         ['label' => 'Standalone tool', 'version' => '1.2.3'],

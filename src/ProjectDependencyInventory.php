@@ -37,6 +37,7 @@ class ProjectDependencyInventory
     /**
      * @return array{
      *     available: bool,
+     *     unavailable_reason: 'missing'|'invalid'|'unsupported'|null,
      *     lockfile_version: int|null,
      *     dependencies: array<int, array{
      *         name: string,
@@ -49,14 +50,22 @@ class ProjectDependencyInventory
      */
     public function npm(): array
     {
-        $lock = $this->readJson($this->configuredPath('package_lock', 'package-lock.json'));
+        $lockPath = $this->configuredPath('package_lock', 'package-lock.json');
 
-        if ($lock === null || ! is_array($lock['packages'] ?? null)) {
-            return [
-                'available' => false,
-                'lockfile_version' => null,
-                'dependencies' => [],
-            ];
+        if (! is_file($lockPath) || ! is_readable($lockPath)) {
+            return $this->unavailableNpmInventory('missing');
+        }
+
+        $lock = $this->readJson($lockPath);
+
+        if ($lock === null) {
+            return $this->unavailableNpmInventory('invalid');
+        }
+
+        if (! is_array($lock['packages'] ?? null)) {
+            return $this->unavailableNpmInventory(
+                ($lock['lockfileVersion'] ?? null) === 1 ? 'unsupported' : 'invalid'
+            );
         }
 
         $manifest = $this->readJson($this->configuredPath('package_json', 'package.json'));
@@ -107,6 +116,7 @@ class ProjectDependencyInventory
 
         return [
             'available' => true,
+            'unavailable_reason' => null,
             'lockfile_version' => is_int($lock['lockfileVersion'] ?? null) ? $lock['lockfileVersion'] : null,
             'dependencies' => $dependencies,
         ];
@@ -141,7 +151,7 @@ class ProjectDependencyInventory
      */
     private function npmTransitiveScope(array $package): string
     {
-        if (($package['optional'] ?? false) === true) {
+        if (($package['optional'] ?? false) === true || ($package['devOptional'] ?? false) === true) {
             return 'optional';
         }
 
@@ -154,6 +164,25 @@ class ProjectDependencyInventory
         }
 
         return 'runtime';
+    }
+
+    /**
+     * @param  'missing'|'invalid'|'unsupported'  $reason
+     * @return array{
+     *     available: false,
+     *     unavailable_reason: 'missing'|'invalid'|'unsupported',
+     *     lockfile_version: null,
+     *     dependencies: array{}
+     * }
+     */
+    private function unavailableNpmInventory(string $reason): array
+    {
+        return [
+            'available' => false,
+            'unavailable_reason' => $reason,
+            'lockfile_version' => null,
+            'dependencies' => [],
+        ];
     }
 
     private function npmScopeOrder(string $scope): int

@@ -6,7 +6,7 @@
                     <x-filament::icon icon="heroicon-o-information-circle" />
                 </div>
                 <p class="fsv-empty-text">
-                    {{ __('filament-system-versions::system-versions.widgets.npm.missing_lock') }}
+                    {{ __("filament-system-versions::system-versions.widgets.npm.unavailable.{$unavailableReason}") }}
                 </p>
             </div>
         @else

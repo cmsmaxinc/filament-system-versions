@@ -9,8 +9,6 @@ class NpmDependencyWidget extends Widget
 {
     protected string $view = 'filament-system-versions::filament.widgets.npm-dependency';
 
-    protected int | string | array $columnSpan = 'full';
-
     /**
      * @return array<string, mixed>
      */
@@ -38,6 +36,7 @@ class NpmDependencyWidget extends Widget
 
         return [
             'available' => $inventory['available'],
+            'unavailableReason' => $inventory['unavailable_reason'],
             'lockfileVersion' => $inventory['lockfile_version'],
             'total' => $dependencies->count(),
             'unique' => $dependencies->unique(fn (array $dependency): string => $dependency['name'] . '@' . $dependency['version'])->count(),

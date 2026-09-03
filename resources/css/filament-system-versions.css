@@ -53,15 +53,6 @@
     overflow-wrap: anywhere;
 }
 
-.fsv-col-label {
-    font-size: 0.75rem;
-    line-height: 1rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    opacity: 0.6;
-}
-
 .fsv-link {
     text-decoration: none;
 }
@@ -103,13 +94,6 @@
     opacity: 0.65;
 }
 
-.fsv-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr));
-    gap: 1rem;
-    align-items: start;
-}
-
 .fsv-summary {
     display: flex;
     flex-wrap: wrap;
@@ -145,6 +129,26 @@
     font-weight: 600;
     cursor: pointer;
     user-select: none;
+}
+
+.fsv-group-summary::-webkit-details-marker {
+    display: none;
+}
+
+.fsv-group-summary > span:first-child {
+    flex: 1;
+}
+
+.fsv-group-summary::after {
+    content: "›";
+    font-size: 1.25rem;
+    line-height: 1;
+    opacity: 0.65;
+    transform: rotate(0deg);
+}
+
+.fsv-group[open] > .fsv-group-summary::after {
+    transform: rotate(90deg);
 }
 
 .fsv-group[open] > .fsv-group-summary {

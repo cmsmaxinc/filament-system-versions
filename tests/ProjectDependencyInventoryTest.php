@@ -46,6 +46,7 @@ it('keeps every npm package instance and classifies its relationship and scope',
             'node_modules/fsevents' => ['name' => 'fsevents', 'version' => '2.3.3', 'optional' => true],
             'node_modules/plugin/node_modules/react' => ['name' => 'react', 'version' => '18.3.1'],
             'node_modules/peer-helper' => ['name' => 'peer-helper', 'version' => '1.2.0', 'peer' => true],
+            'node_modules/dev-optional-helper' => ['name' => 'dev-optional-helper', 'version' => '4.5.0', 'devOptional' => true],
         ],
     ], JSON_THROW_ON_ERROR));
 
@@ -54,7 +55,7 @@ it('keeps every npm package instance and classifies its relationship and scope',
 
     expect($inventory['available'])->toBeTrue()
         ->and($inventory['lockfile_version'])->toBe(3)
-        ->and($dependencies)->toHaveCount(5)
+        ->and($dependencies)->toHaveCount(6)
         ->and($dependencies['node_modules/react'])->toMatchArray([
             'name' => 'react',
             'version' => '19.1.0',
@@ -69,6 +70,7 @@ it('keeps every npm package instance and classifies its relationship and scope',
         ])
         ->and($dependencies['node_modules/vite']['scope'])->toBe('development')
         ->and($dependencies['node_modules/fsevents']['scope'])->toBe('optional')
+        ->and($dependencies['node_modules/dev-optional-helper']['scope'])->toBe('optional')
         ->and($dependencies['node_modules/peer-helper']['scope'])->toBe('peer');
 });
 
@@ -81,7 +83,23 @@ it('degrades safely when lockfiles are missing or malformed', function () {
     expect($inventory->composerScopes())->toBe([])
         ->and($inventory->npm())->toMatchArray([
             'available' => false,
+            'unavailable_reason' => 'invalid',
             'lockfile_version' => null,
             'dependencies' => [],
         ]);
+});
+
+it('distinguishes an unsupported npm v1 lockfile from a missing file', function () {
+    file_put_contents(config('filament-system-versions.inventory.package_lock'), json_encode([
+        'lockfileVersion' => 1,
+        'dependencies' => [],
+    ], JSON_THROW_ON_ERROR));
+
+    $inventory = app(ProjectDependencyInventory::class);
+
+    expect($inventory->npm()['unavailable_reason'])->toBe('unsupported');
+
+    unlink(config('filament-system-versions.inventory.package_lock'));
+
+    expect($inventory->npm()['unavailable_reason'])->toBe('missing');
 });

@@ -8,70 +8,70 @@ use Throwable;
 
 class RuntimeVersionResolver
 {
-    private const UNAVAILABLE = '__filament_system_versions_unavailable__';
+    public const CACHE_KEY = 'filament-system-versions.runtime-versions';
 
     /**
+     * Return the most recently collected runtime versions without spawning
+     * processes during an HTTP request.
+     *
      * @return array{composer: string|null, node: string|null, npm: string|null}
      */
     public function versions(): array
     {
+        try {
+            $versions = Cache::get(self::CACHE_KEY);
+        } catch (Throwable) {
+            return $this->emptyVersions();
+        }
+
+        if (! is_array($versions)) {
+            return $this->emptyVersions();
+        }
+
         return [
-            'composer' => $this->resolve('composer', $this->composerCommand(), '/Composer(?:\s+version)?\s+([^\s]+)/i'),
-            'node' => $this->resolve('node', $this->command('node_path', 'node', '--version'), '/v?([^\s]+)/i'),
-            'npm' => $this->resolve('npm', $this->command('npm_path', 'npm', '--version'), '/([^\s]+)/'),
+            'composer' => is_string($versions['composer'] ?? null) ? $versions['composer'] : null,
+            'node' => is_string($versions['node'] ?? null) ? $versions['node'] : null,
+            'npm' => is_string($versions['npm'] ?? null) ? $versions['npm'] : null,
         ];
     }
 
-    /** @return string|array<int, string> */
-    private function composerCommand(): string | array
+    /**
+     * Collect and persist runtime versions from the dependency refresh command.
+     *
+     * @return array{composer: string|null, node: string|null, npm: string|null}
+     */
+    public function refresh(): array
     {
-        $configuredComposer = (string) config('filament-system-versions.paths.composer_path');
-        $php = config('filament-system-versions.paths.php_path');
+        $commands = app(ConfiguredCommandBuilder::class);
+        $versions = [
+            'composer' => $this->run(
+                $commands->composer(['--version', '--no-ansi']),
+                '/^Composer(?:\s+version)?\s+(\d+\.\d+(?:\.\d+)?(?:[-+][0-9A-Za-z.-]+)?)(?:\s|$)/mi',
+            ),
+            'node' => $this->run(
+                $commands->node(['--version']),
+                '/^v?(\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?)\s*$/mi',
+            ),
+            'npm' => $this->run(
+                $commands->npm(['--version']),
+                '/^v?(\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?)\s*$/mi',
+            ),
+        ];
 
-        if (is_string($php) && $php !== '' && $configuredComposer !== '') {
-            return [$php, $configuredComposer, '--version', '--no-ansi'];
+        try {
+            Cache::forever(self::CACHE_KEY, $versions);
+        } catch (Throwable $exception) {
+            logger()->warning('Runtime versions could not be cached.', [
+                'exception' => $exception,
+            ]);
         }
 
-        if ($configuredComposer !== '') {
-            return [$configuredComposer, '--version', '--no-ansi'];
-        }
-
-        return 'composer --version --no-ansi';
+        return $versions;
     }
 
-    /** @return string|array<int, string> */
-    private function command(string $configKey, string $default, string $arguments): string | array
-    {
-        $binary = (string) config("filament-system-versions.paths.{$configKey}");
-        $binary = $binary !== '' ? $binary : $default;
-
-        if ($binary !== $default) {
-            return [$binary, $arguments];
-        }
-
-        return "{$default} {$arguments}";
-    }
-
-    /** @param string|array<int, string> $command */
-    private function resolve(string $name, string | array $command, string $pattern): ?string
-    {
-        $seconds = max(0, (int) config('filament-system-versions.inventory.runtime_cache_seconds', 3600));
-        $resolver = fn (): ?string => $this->run($command, $pattern);
-
-        if ($seconds === 0) {
-            return $resolver();
-        }
-
-        $value = Cache::remember(
-            'filament-system-versions.runtime.' . hash('sha256', $name . '|' . json_encode($command)),
-            $seconds,
-            fn (): string => $resolver() ?? self::UNAVAILABLE,
-        );
-
-        return $value === self::UNAVAILABLE ? null : $value;
-    }
-
-    /** @param string|array<int, string> $command */
+    /**
+     * @param  string|array<int, string>  $command
+     */
     private function run(string | array $command, string $pattern): ?string
     {
         try {
@@ -84,12 +84,22 @@ class RuntimeVersionResolver
             return null;
         }
 
-        $output = trim($result->output());
-
-        if (preg_match($pattern, $output, $matches) !== 1) {
+        if (preg_match($pattern, trim($result->output()), $matches) !== 1) {
             return null;
         }
 
-        return trim($matches[1]);
+        return $matches[1];
+    }
+
+    /**
+     * @return array{composer: null, node: null, npm: null}
+     */
+    private function emptyVersions(): array
+    {
+        return [
+            'composer' => null,
+            'node' => null,
+            'npm' => null,
+        ];
     }
 }

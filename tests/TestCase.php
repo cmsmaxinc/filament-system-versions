@@ -51,6 +51,7 @@ class TestCase extends Orchestra
     public function getEnvironmentSetUp($app)
     {
         config()->set('database.default', 'testing');
+        config()->set('app.key', 'base64:' . base64_encode(str_repeat('a', 32)));
 
         /*
         $migration = include __DIR__.'/../database/migrations/create_filament-system-versions_table.php.stub';

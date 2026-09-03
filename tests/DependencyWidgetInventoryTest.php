@@ -1,7 +1,19 @@
 <?php
 
 use Cmsmaxinc\FilamentSystemVersions\Filament\Widgets\DependencyWidget;
+use Filament\Facades\Filament;
+use Filament\Panel;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\MessageBag;
+use Livewire\Livewire;
+
+class RenderableDependencyInventoryWidget extends DependencyWidget
+{
+    public function getErrorBag(): MessageBag
+    {
+        return new MessageBag;
+    }
+}
 
 beforeEach(function () {
     $migration = include __DIR__ . '/../database/migrations/create_composer_versions_table.php.stub';
@@ -9,6 +21,7 @@ beforeEach(function () {
 
     $this->composerLock = tempnam(sys_get_temp_dir(), 'fsv-composer-');
     config()->set('filament-system-versions.inventory.composer_lock', $this->composerLock);
+    Filament::setCurrentPanel(Panel::make()->id('test'));
 });
 
 afterEach(function () {
@@ -63,4 +76,10 @@ it('includes up-to-date packages and organizes every Composer dependency', funct
             'direct-runtime',
             'transitive-development',
         ]);
+
+    Livewire::test(RenderableDependencyInventoryWidget::class)
+        ->assertSee('Composer packages')
+        ->assertSee('vendor/direct-current')
+        ->assertSee('Up to date')
+        ->assertSee('Transitive development packages');
 });
