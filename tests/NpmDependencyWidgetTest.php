@@ -63,3 +63,22 @@ it('renders a specific message for an unsupported lockfile', function () {
     Livewire::test(RenderableNpmDependencyWidget::class)
         ->assertSee('This package-lock.json version is unsupported');
 });
+
+it('renders root peer dependencies in a direct peer group', function () {
+    file_put_contents(config('filament-system-versions.inventory.package_json'), json_encode([
+        'peerDependencies' => ['react' => '^19.0.0'],
+    ], JSON_THROW_ON_ERROR));
+    file_put_contents(config('filament-system-versions.inventory.package_lock'), json_encode([
+        'lockfileVersion' => 3,
+        'packages' => [
+            '' => ['name' => 'application'],
+            'node_modules/react' => ['name' => 'react', 'version' => '19.1.0', 'peer' => true],
+        ],
+    ], JSON_THROW_ON_ERROR));
+
+    Livewire::test(RenderableNpmDependencyWidget::class)
+        ->assertSee('Direct peer packages')
+        ->assertDontSee('Transitive peer packages')
+        ->assertSee('react')
+        ->assertSee('19.1.0');
+});

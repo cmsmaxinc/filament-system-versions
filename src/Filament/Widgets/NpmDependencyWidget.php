@@ -20,6 +20,7 @@ class NpmDependencyWidget extends Widget
             ['key' => 'direct-runtime', 'direct' => true, 'scope' => 'runtime', 'open' => true],
             ['key' => 'direct-development', 'direct' => true, 'scope' => 'development', 'open' => true],
             ['key' => 'direct-optional', 'direct' => true, 'scope' => 'optional', 'open' => true],
+            ['key' => 'direct-peer', 'direct' => true, 'scope' => 'peer', 'open' => true],
             ['key' => 'transitive-runtime', 'direct' => false, 'scope' => 'runtime', 'open' => false],
             ['key' => 'transitive-development', 'direct' => false, 'scope' => 'development', 'open' => false],
             ['key' => 'transitive-optional', 'direct' => false, 'scope' => 'optional', 'open' => false],

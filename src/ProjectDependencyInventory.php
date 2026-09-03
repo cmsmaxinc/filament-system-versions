@@ -72,25 +72,30 @@ class ProjectDependencyInventory
         $manifest ??= is_array($lock['packages'][''] ?? null) ? $lock['packages'][''] : [];
 
         $directScopes = $this->npmDirectScopes($manifest);
+        $linkedTargets = $this->npmLinkedTargets($lock['packages']);
         $dependencies = [];
 
         foreach ($lock['packages'] as $path => $package) {
-            if ($path === '' || ! is_string($path) || ! is_array($package)) {
+            if ($path === '' || ! is_string($path) || ! is_array($package) || isset($linkedTargets[$path])) {
                 continue;
             }
 
+            $installedName = $this->npmPackageNameFromPath($path);
+            $package = $this->resolveLinkedNpmPackage($package, $lock['packages']);
             $name = is_string($package['name'] ?? null)
                 ? $package['name']
-                : $this->npmPackageNameFromPath($path);
+                : $installedName;
             $version = $package['version'] ?? null;
 
             if ($name === null || ! is_string($version) || $version === '') {
                 continue;
             }
 
-            $direct = $this->isRootNpmPackagePath($path) && isset($directScopes[$name]);
+            $direct = $installedName !== null
+                && $this->isRootNpmPackagePath($path)
+                && isset($directScopes[$installedName]);
             $scope = $direct
-                ? $directScopes[$name]
+                ? $directScopes[$installedName]
                 : $this->npmTransitiveScope($package);
 
             $dependencies[] = [
@@ -124,7 +129,7 @@ class ProjectDependencyInventory
 
     /**
      * @param  array<string, mixed>  $manifest
-     * @return array<string, 'runtime'|'development'|'optional'>
+     * @return array<string, 'runtime'|'development'|'optional'|'peer'>
      */
     private function npmDirectScopes(array $manifest): array
     {
@@ -134,6 +139,7 @@ class ProjectDependencyInventory
             'dependencies' => 'runtime',
             'devDependencies' => 'development',
             'optionalDependencies' => 'optional',
+            'peerDependencies' => 'peer',
         ] as $section => $scope) {
             foreach ($manifest[$section] ?? [] as $name => $constraint) {
                 if (is_string($name)) {
@@ -143,6 +149,43 @@ class ProjectDependencyInventory
         }
 
         return $scopes;
+    }
+
+    /**
+     * @param  array<string, mixed>  $packages
+     * @return array<string, true>
+     */
+    private function npmLinkedTargets(array $packages): array
+    {
+        $targets = [];
+
+        foreach ($packages as $package) {
+            if (is_array($package) && ($package['link'] ?? false) === true && is_string($package['resolved'] ?? null)) {
+                $targets[$package['resolved']] = true;
+            }
+        }
+
+        return $targets;
+    }
+
+    /**
+     * @param  array<string, mixed>  $package
+     * @param  array<string, mixed>  $packages
+     * @return array<string, mixed>
+     */
+    private function resolveLinkedNpmPackage(array $package, array $packages): array
+    {
+        if (($package['link'] ?? false) !== true || ! is_string($package['resolved'] ?? null)) {
+            return $package;
+        }
+
+        $target = $packages[$package['resolved']] ?? null;
+
+        if (! is_array($target)) {
+            return $package;
+        }
+
+        return array_replace($package, $target);
     }
 
     /**

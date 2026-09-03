@@ -29,6 +29,7 @@ return [
         'direct-runtime' => 'Direct runtime packages',
         'direct-development' => 'Direct development packages',
         'direct-optional' => 'Direct optional packages',
+        'direct-peer' => 'Direct peer packages',
         'transitive-runtime' => 'Transitive runtime packages',
         'transitive-development' => 'Transitive development packages',
         'transitive-optional' => 'Transitive optional packages',

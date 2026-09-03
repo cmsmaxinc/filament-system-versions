@@ -74,6 +74,88 @@ it('keeps every npm package instance and classifies its relationship and scope',
         ->and($dependencies['node_modules/peer-helper']['scope'])->toBe('peer');
 });
 
+it('resolves workspace links before filtering versionless package entries', function () {
+    file_put_contents(config('filament-system-versions.inventory.package_json'), json_encode([
+        'dependencies' => [
+            'workspace-package' => 'workspace:*',
+            'z-workspace-package' => 'workspace:*',
+        ],
+    ], JSON_THROW_ON_ERROR));
+    file_put_contents(config('filament-system-versions.inventory.package_lock'), json_encode([
+        'lockfileVersion' => 3,
+        'packages' => [
+            '' => ['name' => 'application'],
+            'node_modules/workspace-package' => ['resolved' => 'packages/workspace-package', 'link' => true],
+            'node_modules/z-workspace-package' => ['resolved' => 'packages/z-workspace-package', 'link' => true],
+            'packages/workspace-package' => ['version' => '1.2.3'],
+            'packages/z-workspace-package' => ['name' => 'z-workspace-package', 'version' => '2.3.4'],
+        ],
+    ], JSON_THROW_ON_ERROR));
+
+    expect(app(ProjectDependencyInventory::class)->npm()['dependencies'])->toBe([
+        [
+            'name' => 'workspace-package',
+            'version' => '1.2.3',
+            'path' => 'node_modules/workspace-package',
+            'direct' => true,
+            'scope' => 'runtime',
+        ],
+        [
+            'name' => 'z-workspace-package',
+            'version' => '2.3.4',
+            'path' => 'node_modules/z-workspace-package',
+            'direct' => true,
+            'scope' => 'runtime',
+        ],
+    ]);
+});
+
+it('classifies npm aliases by their installed dependency key', function () {
+    file_put_contents(config('filament-system-versions.inventory.package_json'), json_encode([
+        'dependencies' => ['underscore' => 'npm:lodash@^4.17.21'],
+    ], JSON_THROW_ON_ERROR));
+    file_put_contents(config('filament-system-versions.inventory.package_lock'), json_encode([
+        'lockfileVersion' => 3,
+        'packages' => [
+            '' => ['name' => 'application'],
+            'node_modules/underscore' => ['name' => 'lodash', 'version' => '4.17.21'],
+        ],
+    ], JSON_THROW_ON_ERROR));
+
+    expect(app(ProjectDependencyInventory::class)->npm()['dependencies'])->toBe([
+        [
+            'name' => 'lodash',
+            'version' => '4.17.21',
+            'path' => 'node_modules/underscore',
+            'direct' => true,
+            'scope' => 'runtime',
+        ],
+    ]);
+});
+
+it('classifies root peer dependencies as direct peers', function () {
+    file_put_contents(config('filament-system-versions.inventory.package_json'), json_encode([
+        'peerDependencies' => ['react' => '^19.0.0'],
+    ], JSON_THROW_ON_ERROR));
+    file_put_contents(config('filament-system-versions.inventory.package_lock'), json_encode([
+        'lockfileVersion' => 3,
+        'packages' => [
+            '' => ['name' => 'application'],
+            'node_modules/react' => ['name' => 'react', 'version' => '19.1.0', 'peer' => true],
+        ],
+    ], JSON_THROW_ON_ERROR));
+
+    expect(app(ProjectDependencyInventory::class)->npm()['dependencies'])->toBe([
+        [
+            'name' => 'react',
+            'version' => '19.1.0',
+            'path' => 'node_modules/react',
+            'direct' => true,
+            'scope' => 'peer',
+        ],
+    ]);
+});
+
 it('degrades safely when lockfiles are missing or malformed', function () {
     file_put_contents(config('filament-system-versions.inventory.composer_lock'), '{bad json');
     file_put_contents(config('filament-system-versions.inventory.package_lock'), '{bad json');
